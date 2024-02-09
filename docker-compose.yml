@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+    db:
+        image: postgres:14.5
+        volumes:
+            - ./db_data/:/var/lib/postgresql/data/
+        ports:
+            - "5432:5432"
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=postgres
+            - TZ=Asia/Yekaterinburg
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres -d postgres'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
+    web:
+        build: .
+        command: >
+            /bin/bash -c "
+            uvicorn main:app --app-dir src --host 0.0.0.0 --port 8000 --reload
+            "
+        volumes:
+            - .:/app
+        ports:
+            - "8000:8000"
+        environment:
+            - TZ=Asia/Yekaterinburg
+            - DEBT_DATABASE=postgresql+asyncpg://postgres:postgres@db:5432/postgres
+            - DEBT_TEST_URL=http://web:8000/
+        depends_on:
+            db:
+                condition: service_healthy
