@@ -20,7 +20,7 @@ debt= sa.Table(
     sa.Column('name', sa.String(100), nullable=False),
     sa.Column('date', sa.Date, nullable=False),
     sa.Column('amount', sa.Integer, nullable=False),
-    sa.Column('period', sa.Intger, nullable=False),
+    sa.Column('period', sa.Integer, nullable=False),
 )
 
 
