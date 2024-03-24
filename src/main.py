@@ -6,6 +6,7 @@ from fastapi.responses import ORJSONResponse
 
 from config import cfg
 from logger import LOGGING
+from api import auth
 
 
 logging.config.dictConfig(LOGGING)
@@ -17,6 +18,7 @@ app = FastAPI(
     version='0.1',
     default_response_class=ORJSONResponse,
 )
+app.include_router(auth.router)
 
 
 if __name__ == '__main__':
