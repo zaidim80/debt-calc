@@ -19,6 +19,8 @@ debt = sa.Table(
     sa.Column("date", sa.Date, nullable=False),
     sa.Column("amount", sa.Integer, nullable=False),
     sa.Column("period", sa.Integer, nullable=False),
+    sa.Column("rate", sa.Float, nullable=False, server_default="0"),
+    sa.Column("author_email", sa.String(200), sa.ForeignKey("user.email"), nullable=False),
 )
 
 payment = sa.Table(

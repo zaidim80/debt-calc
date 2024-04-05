@@ -7,9 +7,8 @@ import http
 from typing import Annotated
 import logging
 
-import schemas
-from schemas import User, UserReg, Token
-import models
+import schemas as s
+import models as m
 from db import rds, dbe
 
 
@@ -19,12 +18,12 @@ log = logging.getLogger()
 
 class AuthActions:
     @staticmethod
-    async def register_user(dbc: AsyncConnection, data: UserReg) -> User | None:
+    async def register_user(dbc: AsyncConnection, data: s.UserReg) -> s.User | None:
         pass_hash = hashlib.sha1(data.password.encode()).hexdigest()
         res = await dbc.execute(
-            sa.select(models.user.c.email)
-            .select_from(models.user)
-            .where(models.user.c.email == data.email)
+            sa.select(m.user.c.email)
+            .select_from(m.user)
+            .where(m.user.c.email == data.email)
         )
         existing_user = res.first()
         if existing_user:
@@ -34,30 +33,30 @@ class AuthActions:
                 status_code=http.HTTPStatus.BAD_REQUEST,
             )
         res = await dbc.execute(
-            sa.insert(models.user)
+            sa.insert(m.user)
             .values(
                 **data.model_dump(exclude={"password"}),
                 password=pass_hash,
             )
             .returning(
-                models.user.c.email,
-                models.user.c.name,
-                models.user.c.admin,
+                m.user.c.email,
+                m.user.c.name,
+                m.user.c.admin,
             )
         )
-        return User.model_validate(res.first(), from_attributes=True)
+        return s.User.model_validate(res.first(), from_attributes=True)
 
     @staticmethod
-    async def get_token(dbc: AsyncConnection, data: OAuth2PasswordRequestForm) -> Token:
+    async def get_token(dbc: AsyncConnection, data: OAuth2PasswordRequestForm) -> s.Token:
         pass_hash = hashlib.sha1(data.password.encode()).hexdigest()
         res = await dbc.execute(
             sa.select(
-                models.user.c.email,
-                models.user.c.password,
-                models.user.c.admin,
+                m.user.c.email,
+                m.user.c.password,
+                m.user.c.admin,
             )
-            .select_from(models.user)
-            .where(models.user.c.email == data.username.lower())
+            .select_from(m.user)
+            .where(m.user.c.email == data.username.lower())
         )
         user = res.first()
         if user is None:
@@ -73,7 +72,7 @@ class AuthActions:
                 status_code=http.HTTPStatus.BAD_REQUEST,
             )
         # логика формирования токена заведомо небезопасная
-        token = Token(
+        token = s.Token(
             access_token=hashlib.sha1(str(user.id).encode()).hexdigest(),
             token_type="bearer",
         )
@@ -83,7 +82,7 @@ class AuthActions:
     @staticmethod
     async def auth(
         token: Annotated[str, Depends(oauth2_scheme)],
-    ) -> schemas.User:
+    ) -> s.User:
         email = str(await rds.get(f"token-{token}"))
         if email is None:
             log.error("Токен не найден или не зарегистрирован")
@@ -96,12 +95,12 @@ class AuthActions:
         async with dbe.begin() as dbc:
             res = await dbc.execute(
                 sa.select(
-                    models.user.c.email,
-                    models.user.c.name,
-                    models.user.c.admin,
+                    m.user.c.email,
+                    m.user.c.name,
+                    m.user.c.admin,
                 )
-                .select_from(models.user)
-                .where(models.user.c.email == email)
+                .select_from(m.user)
+                .where(m.user.c.email == email)
             )
             user = res.first()
             if user is None:
@@ -111,7 +110,7 @@ class AuthActions:
                     status_code=http.HTTPStatus.BAD_REQUEST,
                 )
             log.info(f"Авторизован, как {email}")
-            return schemas.User.model_validate(user, from_attributes=True)
+            return s.User.model_validate(user, from_attributes=True)
 
 
 actions = AuthActions()
