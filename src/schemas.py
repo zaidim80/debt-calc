@@ -37,6 +37,12 @@ class Debt(BaseModel):
     author: UserOut | None = None
 
 
+class PaymentData(BaseModel):
+    amount: int
+    date: datetime
+    debt_id: int
+
+
 class Payment(BaseModel):
     id: int | None = None
     amount: int
