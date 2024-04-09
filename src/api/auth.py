@@ -18,7 +18,8 @@ log = logging.getLogger()
 @router.post(
     "/token",
     status_code=http.HTTPStatus.OK,
-    description="Получение токена",
+    summary="Получение токена",
+    description="Получение токена (авторизация по логину и паролю)",
 )
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -28,21 +29,11 @@ async def login(
     return token
 
 
-# @router.post(
-#     "/register",
-#     status_code=http.HTTPStatus.CREATED,
-#     response_model=schemas.User,
-#     description="Регистрация пользователя",
-# )
-# async def register(
-#     form_data: schemas.UserReg,
-#     dbc: AsyncConnection = Depends(get_connection),
-# ):
-#     log.info(f"Вызов метода регистрации пользователя с параметрами: {form_data}")
-#     user = await auth.actions.register_user(dbc, form_data)
-#     return user
-
-
-@router.get("/me")
+@router.get(
+    "/me",
+    status_code=http.HTTPStatus.OK,
+    summary="Авторизованный",
+    description="Вывод данных авторизованного пользователя",
+)
 async def get_me(user: Annotated[schemas.User, Depends(auth.actions.auth)]):
     return user

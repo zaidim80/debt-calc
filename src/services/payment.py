@@ -1,19 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncConnection
 import sqlalchemy as sa
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi import HTTPException, Depends
-import hashlib
-import http
-from typing import Annotated
 import logging
 import pydantic as pd
 
 import schemas as s
 import models as m
-from db import rds, dbe
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 log = logging.getLogger()
 
 
