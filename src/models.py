@@ -8,6 +8,7 @@ user = sa.Table(
     metadata,
     sa.Column("email", sa.String(200), primary_key=True),
     sa.Column("name", sa.String(200), nullable=False),
+    sa.Column("password", sa.String(64), nullable=False, server_default=""),
     sa.Column("admin", sa.Boolean, nullable=False, server_default=sa.false()),
 )
 

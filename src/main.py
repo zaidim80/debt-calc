@@ -6,7 +6,7 @@ from fastapi.responses import ORJSONResponse
 
 from config import cfg
 from logger import LOGGING
-from api import auth, payment
+from api import auth, debt, payment
 
 
 logging.config.dictConfig(LOGGING)
@@ -19,6 +19,7 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
 )
 app.include_router(auth.router, tags=["авторизация"])
+app.include_router(debt.router, tags=["займы"])
 app.include_router(payment.router, tags=["платежи"])
 
 

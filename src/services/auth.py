@@ -73,7 +73,7 @@ class AuthActions:
             )
         # логика формирования токена заведомо небезопасная
         token = s.Token(
-            access_token=hashlib.sha1(str(user.id).encode()).hexdigest(),
+            access_token=hashlib.sha1(str(user.email).encode()).hexdigest(),
             token_type="bearer",
         )
         await rds.set(f"token-{token.access_token}", user.email, 3600)
