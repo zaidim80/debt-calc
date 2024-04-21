@@ -56,6 +56,13 @@ class Payment(BaseModel):
     date: datetime
     author: UserOut | None = None
 
+    @model_validator(mode="after")
+    @classmethod
+    def check_author(cls, v, info):
+        if isinstance(info.context, dict) and "author" in info.context:
+            v.author = info.context["author"]
+        return v
+
 
 class PaymentInfo(Payment):
     debt: Debt | None = None

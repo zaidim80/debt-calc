@@ -29,12 +29,11 @@ class PaymentActions:
             )
         )
         item = res.first()
-        result = s.Payment.model_validate(item, from_attributes=True)
-        result.author = s.UserOut(
-            email=item.author_email,
-            name=item.author_name,
+        return s.Payment.model_validate(
+            item,
+            from_attributes=True,
+            context={"author": s.UserOut(name=item.author_name, email=item.author_email)},
         )
-        return result
 
     @staticmethod
     async def get_list(dbc: AsyncConnection, user: s.User, debt_id: int | None = None):
@@ -59,11 +58,11 @@ class PaymentActions:
             query = query.where(m.user.c.email == m.payment.c.author_email)
         res = await dbc.execute(query)
         items = res.fetchall()
-        return [(
-            s.Payment
-            .model_validate(item, from_attributes=True)
-            .setattr("author", s.UserOut(name=item.author_name, email=item.author_email))
-        ) for item in items]
+        return [(s.Payment.model_validate(
+            item,
+            from_attributes=True,
+            context={"author": s.UserOut(name=item.author_name, email=item.author_email)},
+        )) for item in items]
 
     @staticmethod
     async def create(dbc: AsyncConnection, user: s.User, data: s.PaymentData):
@@ -90,9 +89,12 @@ class PaymentActions:
                 .returning(m.payment.c.id, m.payment.c.date, m.payment.c.amount, )
             )
             item = res.first()
-            result = s.Payment.model_validate(item, from_attributes=True)
-            result.author = user
-            result.debt = None
+            result = s.Payment.model_validate(
+                item,
+                from_attributes=True,
+                context={"author": user},
+            )
+            result.debt = s.Debt.model_validate(debt, from_attributes=True)
             return result
 
 
