@@ -50,3 +50,16 @@ services:
                 condition: service_healthy
             redis:
                 condition: service_healthy
+    frontend:
+        image: node:lts
+        working_dir: /app/
+        command: >
+            /bin/bash -c "
+            cd calc-front
+            && npm run dev
+            "
+        ports:
+            - "8001:8001"
+        volumes:
+            - ./vue/:/app
+        tty: true

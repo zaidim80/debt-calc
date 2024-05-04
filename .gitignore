@@ -6,3 +6,7 @@ redis/
 *.env
 env/
 data
+*.log
+.DS_Store
+.vscode
+/vue/calc-front/.vscode/
