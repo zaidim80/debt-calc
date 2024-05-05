@@ -4,7 +4,7 @@ import { createMemoryHistory, createRouter } from 'vue-router';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap";
 
-import App from './app.vue';
+import App from './App.vue';
 import './style.css';
 
 import HomePage from './components/home-page.vue';
