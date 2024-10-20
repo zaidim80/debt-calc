@@ -56,6 +56,7 @@ services:
         command: >
             /bin/bash -c "
             cd calc-front
+            && npm install
             && npm run dev
             "
         ports:
