@@ -31,7 +31,9 @@ services:
             timeout: 3s
             retries: 5
     web:
-        build: .
+        build: 
+            context: .
+            dockerfile: Dockerfile.backend
         command: >
             /bin/bash -c "
             uvicorn main:app --app-dir src --host 0.0.0.0 --port 8000 --reload
@@ -51,16 +53,13 @@ services:
             redis:
                 condition: service_healthy
     frontend:
-        image: node:lts
-        working_dir: /app/
-        command: >
-            /bin/bash -c "
-            cd calc-front
-            && npm install
-            && npm run dev
-            "
+        build: 
+            context: .
+            dockerfile: Dockerfile.frontend
         ports:
             - "8001:8001"
+        command: >
+            /bin/bash -c "npm run dev"
         volumes:
-            - ./vue/:/app
+            - ./vue/src/:/app/src
         tty: true
