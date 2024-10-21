@@ -63,3 +63,12 @@ services:
         volumes:
             - ./vue/src/:/app/src
         tty: true
+    nginx:
+        build: 
+            context: .
+            dockerfile: Dockerfile.nginx
+        ports:
+            - 80:80
+        depends_on:
+            - web
+            - frontend
