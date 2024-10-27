@@ -1,31 +1,71 @@
 <template>
     <main class="form-signin w-100 m-auto">
         <form>
-            <h2>Вход</h2>
+            <img class="mb-2" src="../assets/rabbit.svg" alt="" width="160" height="160">
             <div class="form-floating">
-                <input type="email" class="form-control" id="floatingInput" placeholder="Имя пользователя">
+                <input
+                    v-model="username"
+                    type="text"
+                    class="form-control"
+                >
                 <label for="floatingInput">Имя пользователя</label>
             </div>
             <div class="form-floating">
-                <input type="password" class="form-control" id="floatingPassword" placeholder="Пароль">
+                <input
+                    v-model="password"
+                    type="password"
+                    class="form-control"
+                >
                 <label for="floatingPassword">Пароль</label>
             </div>
-            <button class="btn btn-primary w-100 py-2 mt-2" type="submit">Войти</button>
+            <button
+                @click.prevent="login"
+                class="btn btn-primary w-100 py-2"
+            >
+                Войти
+            </button>
         </form>
     </main>
 </template>
 
+<script>
+import axios from "axios";
+
+export default {
+    data() {
+        return {
+            username: "",
+            password: "",
+        };
+    },
+    methods: {
+        async login() {
+            try {
+                const formData = new FormData();
+                formData.append("username", this.username);
+                formData.append("password", this.password);
+                const res = await axios.post("/api/token", formData);
+                if (res.status == 200 && res.data.access_token) {
+                    localStorage.setItem("token", res.data.access_token);
+                    this.$router.push("/");
+                }
+            } catch (error) {
+                console.error('Error registering user:', error);
+            }
+        },
+    },
+};
+</script>
+
 <style scoped>
 .form-signin {
-    max-width: 480px;
-    padding: 2rem 3rem;
-    background: #fff;
-    border-radius: .5rem;
+    max-width: 330px;
+    padding: 1rem;
 }
 .form-signin .form-floating:focus-within {
     z-index: 2;
 }
-.form-signin input[type="email"] {
+.form-signin input[type="text"] {
     margin-bottom: -1px;
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;

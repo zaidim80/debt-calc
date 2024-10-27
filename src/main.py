@@ -17,6 +17,7 @@ app = FastAPI(
     title="Калькулятор долгов",
     version="0.1",
     default_response_class=ORJSONResponse,
+    root_path="/api",
 )
 app.include_router(auth.router, tags=["авторизация"])
 app.include_router(debt.router, tags=["займы"])
