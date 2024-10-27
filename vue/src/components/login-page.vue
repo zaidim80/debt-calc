@@ -1,7 +1,7 @@
 <template>
     <main class="form-signin w-100 m-auto">
         <form>
-            <img class="mb-2" src="../assets/rabbit.svg" alt="" width="160" height="160">
+            <img class="mb-2 m-auto" src="../assets/rabbit.svg" alt="" width="160" height="160">
             <div class="form-floating">
                 <input
                     v-model="username"
@@ -59,8 +59,17 @@ export default {
 
 <style scoped>
 .form-signin {
-    max-width: 330px;
+    max-width: 320px;
     padding: 1rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.form-signin form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 .form-signin .form-floating:focus-within {
     z-index: 2;
