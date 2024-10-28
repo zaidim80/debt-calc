@@ -4,4 +4,5 @@ html,
 body, 
 body > div#app {
   height: 100%;
+  background: #DAE1F2;
 }

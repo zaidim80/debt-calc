@@ -60,16 +60,18 @@ export default {
 <style scoped>
 .form-signin {
     max-width: 320px;
-    padding: 1rem;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .form-signin form {
+    padding: 2rem;
     width: 100%;
     display: flex;
     flex-direction: column;
+    background: #fff;
+    border-radius: 12px;
 }
 .form-signin .form-floating:focus-within {
     z-index: 2;
