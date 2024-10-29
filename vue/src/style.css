@@ -6,3 +6,7 @@ body > div#app {
   height: 100%;
   background: #DAE1F2;
 }
+body > div#app {
+  display: flex;
+  flex-direction: column;
+}
