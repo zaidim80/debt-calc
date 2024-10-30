@@ -107,7 +107,7 @@ class AuthActions:
                 log.error("Ошибка авторизации, пользователь не найден")
                 raise HTTPException(
                     detail="Ошибка авторизации, пользователь не найден",
-                    status_code=http.HTTPStatus.BAD_REQUEST,
+                    status_code=http.HTTPStatus.UNAUTHORIZED,
                 )
             log.info(f"Авторизован, как {email}")
             return s.User.model_validate(user, from_attributes=True)
