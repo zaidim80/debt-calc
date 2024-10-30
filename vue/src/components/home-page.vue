@@ -9,7 +9,7 @@
                         v-for="d in debts"
                         :key="d.id"
                         @click.prevent="() => { selDebt = d }"
-                        :class="{ 'btn-warning': d.id == selDebt.id }"
+                        :class="{ 'btn-warning': selDebt && d.id == selDebt.id }"
                     >
                         {{ d.name }}
                     </a>
@@ -32,7 +32,7 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row" v-if="selDebt && details">
             <div class="col pt-4">
                 <div class="bg-body p-3 rounded summary">
                     <p>
@@ -41,8 +41,7 @@
                         <span class="text-success">{{ formatDate(selDebt.date) }}</span>
                     <br>
                         Платеж (исходный): 
-                        <span class="only-full">10&nbsp;000&nbsp;₽</span>
-                        <span class="only-mobile">10000₽</span>
+                        <span class="text-success">{{ formatInt(details.default_payment) }}</span>₽
                     </p>
                 </div>
             </div>
@@ -130,6 +129,7 @@ export default {
             token: localStorage.getItem("token"),
             debts: [],
             selDebt: null,
+            details: null,
         };
     },
     async created() {
@@ -155,6 +155,28 @@ export default {
             } catch (e) {
                 console.log(e);
                 if (e.response.status == 401) this.$router.push("/login");
+            }
+        },
+        async getDebtData() {
+            try {
+                const res = await axios.get(
+                    "/api/debt/" + this.selDebt.id,
+                    { headers: { Authorization: `Bearer ${this.token}` }},
+                );
+                if (res.status == 200) {
+                    this.details = res.data;
+                }
+            } catch (e) {
+                console.log(e);
+                if (e.response.status == 401) this.$router.push("/login");
+            }
+        },
+    },
+    watch: {
+        async selDebt(v) {
+            if (v) {
+                this.details = null;
+                await this.getDebtData();
             }
         },
     },

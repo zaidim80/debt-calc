@@ -35,6 +35,7 @@ class Debt(BaseModel):
     period: int
     rate: float
     author: UserOut | None = None
+    default_payment: int = 0
 
     @model_validator(mode="after")
     @classmethod

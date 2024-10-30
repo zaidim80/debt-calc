@@ -13,7 +13,11 @@ log = logging.getLogger()
 
 class DebtActions:
     @staticmethod
-    async def get_one(dbc: AsyncConnection, user: s.User, item_id: int):
+    def get_month_payment(rate, months, sum):
+        mrate = rate / 12 / 100
+        return sum * (mrate + mrate / (pow(1 + mrate, months) - 1))
+
+    async def get_one(self, dbc: AsyncConnection, user: s.User, item_id: int):
         res = await dbc.execute(
             sa.select(
                 m.debt.c.id,
@@ -56,6 +60,11 @@ class DebtActions:
             from_attributes=True,
             context={"author": s.UserOut(name=item.author_name, email=item.author_email)},
         ) for item in res.fetchall()]
+        result.default_payment = round(self.get_month_payment(
+            result.rate,
+            result.period,
+            result.amount,
+        ), 2)
         return result
 
     @staticmethod
