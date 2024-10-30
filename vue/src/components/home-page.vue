@@ -1,34 +1,55 @@
 <template>
     <div class="container">
-        <ul class="nav nav-tabs">
-            <li
-                class="nav-item"
-                v-for="d in debts"
-                :key="d.id"
-            >
-                <a
-                    href="#"
-                    class="nav-link"
-                    @click.prevent="() => { selectedDebt = d.id }"
-                    :class="{ 'active': d.id == selectedDebt }"
-                >
-                    {{ d.name }}
-                </a>
-            </li>
-        </ul>
-        <div class="tab-content">
-            <div id="vaulina" class="tab-pane active pt-4">
-                <p>
-                    <strong>
-                        <span class="only-full">500&nbsp;000,00&nbsp;₽</span>
-                        <span class="only-mobile">500000₽</span> под 7,5%
-                    </strong>
-                </p>
-                <p>Платеж (исходный): 
-                    <span class="only-full">10&nbsp;000&nbsp;₽</span>
-                    <span class="only-mobile">10000₽</span>
-                </p>
-                <div class="table-responsive table-payments">
+        <div class="row">
+            <div class="col pt-4">
+                <div class="btn-group bg-body">
+                    <a
+                        href="#"
+                        class="btn"
+                        v-for="d in debts"
+                        :key="d.id"
+                        @click.prevent="() => { selDebt = d }"
+                        :class="{ 'btn-warning': d.id == selDebt.id }"
+                    >
+                        {{ d.name }}
+                    </a>
+                </div>
+            </div>
+            <div class="col pt-4 text-end">
+                <div class="btn-group bg-body">
+                    <a
+                        href="#"
+                        class="btn"
+                    >
+                        Пользователи
+                    </a>
+                    <a
+                        href="#"
+                        class="btn"
+                    >
+                        Выход
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col pt-4">
+                <div class="bg-body p-3 rounded summary">
+                    <p>
+                        <span class="text-success">{{ formatInt(selDebt.amount) }}</span>₽ под 
+                        <span class="text-success">{{ formatFloat(selDebt.rate) }}</span>% от 
+                        <span class="text-success">{{ formatDate(selDebt.date) }}</span>
+                    <br>
+                        Платеж (исходный): 
+                        <span class="only-full">10&nbsp;000&nbsp;₽</span>
+                        <span class="only-mobile">10000₽</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col pt-4">
+                <div class="table-responsive table-payments bg-body p-3 rounded">
                     <div class="vtable">
                         <div class="vthead">
                             <div class="vtr">
@@ -93,39 +114,48 @@
 </template>
 
 <style scoped>
-main > .container {
-    padding: 96px 15px 0;
+
+.summary > p:last-child {
+    margin-bottom: 0;
 }
 </style>
 
 <script>
+import axios from "axios";
+
 export default {
     computed: {},
     data() {
         return {
-            debts: [
-                {
-                    id: 1,
-                    name: "Дом-В",
-                    amount: 500000,
-                    period: 60,
-                    date: "01.01.2019",
-                    rate: 7.5,
-                },
-                {
-                    id: 2,
-                    name: "Дом-З",
-                    amount: 1200000,
-                    period: 90,
-                    date: "01.01.2019",
-                    rate: 7,
-                },
-            ],
-            selectedDebt: null,
+            token: localStorage.getItem("token"),
+            debts: [],
+            selDebt: null,
         };
     },
-    created() {
-        this.selectedDebt = this.debts[0].id;
+    async created() {
+        await this.getDebts();
+        if (this.debts.length) this.selDebt = this.debts[0];
+    },
+    methods: {
+        formatDate(date) {
+            const dt = new Date(date);
+            return dt.toLocaleDateString("ru-RU");
+        },
+        formatInt(num) { return num.toLocaleString("ru-RU"); },
+        formatFloat(num) { return num.toLocaleString("ru-RU", { minimumFractionDigits: 2 }); },
+        async getDebts() {
+            try {
+                const res = await axios.get(
+                    "/api/debt",
+                    { headers: { Authorization: `Bearer ${this.token}` }},
+                );
+                if (res.status == 200) {
+                    this.debts = res.data;
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        },
     },
 };
 </script>

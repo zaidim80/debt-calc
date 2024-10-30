@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 class User(BaseModel):
-    email: EmailStr
+    email: str
     name: str
     admin: bool = False
 
@@ -14,7 +14,7 @@ class User(BaseModel):
 
 
 class UserOut(BaseModel):
-    email: EmailStr
+    email: str
     name: str
 
 
