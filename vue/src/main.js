@@ -22,7 +22,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (to.matched.some((route) => route.meta.requiresAuth)) {
         if (token) { next(); } else { next("/login"); }
     } else {

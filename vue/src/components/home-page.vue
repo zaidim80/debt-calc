@@ -26,6 +26,7 @@
                     <a
                         href="#"
                         class="btn"
+                        @click.prevent="exit"
                     >
                         Выход
                     </a>
@@ -46,8 +47,8 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col pt-4">
+        <div class="row for-table">
+            <div class="col pt-4 pb-4 for-table">
                 <div class="table-responsive table-payments bg-body p-3 rounded">
                     <div class="vtable">
                         <div class="vthead">
@@ -113,9 +114,138 @@
 </template>
 
 <style scoped>
-
+.container {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 100%;
+}
 .summary > p:last-child {
     margin-bottom: 0;
+}
+.for-table {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 100%;
+}
+
+.table-responsive {
+	flex: 1 1 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.only-mobile {
+	display: none !important;
+}
+.vtable {
+	display: flex;
+	border-top: 1px solid #dee2e6;
+	flex: 1 1 100%;
+	flex-direction: column;
+}
+.vtable > .vthead {
+	border-bottom: 1px solid #dee2e6;
+	flex: 0 0 auto;
+}
+.vtable > .vtbody {
+	flex: 1 1 100%;
+	position: relative;
+}
+.vtable > .vtbody > .wrapper {
+	border-bottom: 1px solid #dee2e6;
+	overflow-y: scroll;
+	display: block;
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+}
+.vtable > .vthead > .vtr,
+.vtable > .vtbody > .wrapper > .vtr {
+	display: flex;
+	flex-direction: row;
+	flex: 1 1 100%;
+	border-bottom: 1px solid #dee2e6;
+}
+.vtable > .vthead > .vtr > div,
+.vtable > .vtbody > .wrapper > .vtr > div {
+	flex: 0 0 170px;
+	overflow: hidden;
+	padding: 0 6px;
+	box-sizing: border-box;
+	height: 42px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+.vtable > .vthead > .vtr > div:nth-child(1),
+.vtable > .vtbody > .wrapper > .vtr > div:nth-child(1) {
+	flex: 0 0 100px;
+	padding-left: 0;
+	justify-content: flex-start;
+}
+.vtable > .vthead > .vtr > div:nth-child(7),
+.vtable > .vtbody > .wrapper > .vtr > div:nth-child(7) {
+	padding-right: 0;
+	flex: 1 1 auto;
+}
+
+@media (max-width: 1201px) {
+	.vtable > .vthead > .vtr > div,
+	.vtable > .vtbody > .wrapper > .vtr > div {
+		flex: 0 0 165px;
+	}
+	.vtable > .vthead > .vtr > div:nth-child(1),
+	.vtable > .vtbody > .wrapper > .vtr > div:nth-child(1) {
+		flex: 0 0 95px;
+	}
+
+}
+
+@media (max-width: 993px) {
+	.vtable > .vthead > .vtr > div,
+	.vtable > .vtbody > .wrapper > .vtr > div {
+		flex: 0 0 115px;
+	}
+	.vtable > .vthead > .vtr > div:nth-child(1),
+	.vtable > .vtbody > .wrapper > .vtr > div:nth-child(1) {
+		flex: 0 0 80px;
+	}
+
+}
+
+@media (max-width: 769px) {
+	.vtable > .vthead > .vtr > div,
+	.vtable > .vtbody > .wrapper > .vtr > div {
+		flex: 0 0 100px;
+	}
+	.vtable > .vthead > .vtr > div:nth-child(1),
+	.vtable > .vtbody > .wrapper > .vtr > div:nth-child(1) {
+		flex: 0 0 75px;
+	}
+	.vtable > .vthead > .vtr > div:nth-child(3),
+	.vtable > .vtbody > .wrapper > .vtr > div:nth-child(3) {
+		flex: 0 0 110px;
+	}
+	.vtable > .vthead > .vtr > div:nth-child(4),
+	.vtable > .vtbody > .wrapper > .vtr > div:nth-child(4) {
+		display: none;
+	}
+
+}
+
+@media (max-width: 577px) {
+	.only-full {
+		display: none !important;
+	}
+	.only-mobile {
+		display: inline !important;
+	}
+	.vtable > .vthead > .vtr > div:nth-child(3),
+	.vtable > .vtbody > .wrapper > .vtr > div:nth-child(3) {
+		flex: 1 1 20%;
+	}
 }
 </style>
 
@@ -126,7 +256,7 @@ export default {
     computed: {},
     data() {
         return {
-            token: localStorage.getItem("token"),
+            token: sessionStorage.getItem("token"),
             debts: [],
             selDebt: null,
             details: null,
@@ -170,6 +300,11 @@ export default {
                 console.log(e);
                 if (e.response.status == 401) this.$router.push("/login");
             }
+        },
+        exit() {
+            sessionStorage.removeItem("token");
+            this.token = null;
+            this.$router.push("/login");
         },
     },
     watch: {
