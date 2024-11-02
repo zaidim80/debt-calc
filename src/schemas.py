@@ -69,5 +69,16 @@ class PaymentInfo(Payment):
     debt: Debt | None = None
 
 
+class FuturePayment(BaseModel):
+    id: int | None = None
+    amount: int = 0
+    interest: int = 0
+    redemption: int = 0
+    total: int = 0
+    remainder: int = 0
+    date: datetime
+
+
 class DebtInfo(Debt):
     payments: list[Payment] | None = None
+    schedule: list[FuturePayment] | None = None
