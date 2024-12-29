@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 class User(BaseModel):
-    email: EmailStr
+    email: str
     name: str
     admin: bool = False
 
@@ -14,7 +14,7 @@ class User(BaseModel):
 
 
 class UserOut(BaseModel):
-    email: EmailStr
+    email: str
     name: str
 
 
@@ -35,6 +35,7 @@ class Debt(BaseModel):
     period: int
     rate: float
     author: UserOut | None = None
+    default_payment: int = 0
 
     @model_validator(mode="after")
     @classmethod
@@ -68,5 +69,16 @@ class PaymentInfo(Payment):
     debt: Debt | None = None
 
 
+class FuturePayment(BaseModel):
+    id: int | None = None
+    amount: int = 0
+    interest: int = 0
+    redemption: int = 0
+    total: int = 0
+    remainder: int = 0
+    date: datetime
+
+
 class DebtInfo(Debt):
     payments: list[Payment] | None = None
+    schedule: list[FuturePayment] | None = None

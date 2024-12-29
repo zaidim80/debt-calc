@@ -129,8 +129,8 @@ class AuthActions:
             if user is None:
                 log.error(f"Ошибка авторизации, пользователь {email} не найден")
                 raise HTTPException(
-                    detail=f"Ошибка авторизации, пользователь {email} не найден",
-                    status_code=http.HTTPStatus.BAD_REQUEST,
+                    detail="Ошибка авторизации, пользователь {email} не найден",
+                    status_code=http.HTTPStatus.UNAUTHORIZED,
                 )
             log.info(f"Авторизован, как {email}")
             return s.User.model_validate(user, from_attributes=True)

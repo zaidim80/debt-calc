@@ -46,7 +46,7 @@ export default {
                 formData.append("password", this.password);
                 const res = await axios.post("/api/token", formData);
                 if (res.status == 200 && res.data.access_token) {
-                    localStorage.setItem("token", res.data.access_token);
+                    sessionStorage.setItem("token", res.data.access_token);
                     this.$router.push("/");
                 }
             } catch (error) {
