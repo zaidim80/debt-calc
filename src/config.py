@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     dsn: str = Field("postgresql+asyncpg://postgres:postgres@db:5432/postgres")
     redis: str = Field("localhost")
 
+    auth_secret: str = Field("mega-secret")
+
     test_url: str = Field("http://localhost:8000/")
 
 

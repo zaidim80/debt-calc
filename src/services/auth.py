@@ -6,10 +6,13 @@ import hashlib
 import http
 from typing import Annotated
 import logging
+from datetime import datetime, timedelta, timezone
+import jwt
 
 import schemas as s
 import models as m
-from db import rds, dbe
+from db import dbe
+from config import cfg
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
@@ -18,8 +21,19 @@ log = logging.getLogger()
 
 class AuthActions:
     @staticmethod
-    async def register_user(dbc: AsyncConnection, data: s.UserReg) -> s.User | None:
-        pass_hash = hashlib.sha1(data.password.encode()).hexdigest()
+    def hash_password(pwd: str) -> str:
+        return hashlib.sha256(pwd.encode()).hexdigest()
+    
+    @staticmethod
+    def create_token(data: dict) -> str:
+        to_encode = data.copy()
+        expire = datetime.now(timezone.utc) + timedelta(days=30)
+        to_encode.update({"exp": expire})
+        token = jwt.encode(to_encode, cfg.auth_secret, algorithm="HS256")
+        return token
+
+    async def register_user(self, dbc: AsyncConnection, data: s.UserReg) -> s.User | None:
+        pass_hash = self.hash_password(data.password.encode())
         res = await dbc.execute(
             sa.select(m.user.c.email)
             .select_from(m.user)
@@ -46,9 +60,8 @@ class AuthActions:
         )
         return s.User.model_validate(res.first(), from_attributes=True)
 
-    @staticmethod
-    async def get_token(dbc: AsyncConnection, data: OAuth2PasswordRequestForm) -> s.Token:
-        pass_hash = hashlib.sha1(data.password.encode()).hexdigest()
+    async def get_token(self, dbc: AsyncConnection, data: OAuth2PasswordRequestForm) -> s.Token:
+        pass_hash = self.hash_password(data.password)
         res = await dbc.execute(
             sa.select(
                 m.user.c.email,
@@ -73,17 +86,28 @@ class AuthActions:
             )
         # логика формирования токена заведомо небезопасная
         token = s.Token(
-            access_token=hashlib.sha1(str(user.email).encode()).hexdigest(),
+            access_token=self.create_token({
+                "email": user.email,
+                "admin": user.admin,
+            }),
             token_type="bearer",
         )
-        await rds.set(f"token-{token.access_token}", user.email, 3600)
         return token
 
     @staticmethod
     async def auth(
         token: Annotated[str, Depends(oauth2_scheme)],
     ) -> s.User:
-        email = str(await rds.get(f"token-{token}"))
+        try:
+            payload = jwt.decode(token, cfg.auth_secret, algorithms=["HS256", ])
+        except Exception as e:
+            log.error(f"Токен не валидный: {e}")
+            raise HTTPException(
+                status_code=http.HTTPStatus.UNAUTHORIZED,
+                detail=f"Токен не валидный: {e}",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        email = payload.get("email")
         if email is None:
             log.error("Токен не найден или не зарегистрирован")
             raise HTTPException(
@@ -91,7 +115,6 @@ class AuthActions:
                 status_code=http.HTTPStatus.UNAUTHORIZED,
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        await rds.set(f"token-{token}", email, 3600)
         async with dbe.begin() as dbc:
             res = await dbc.execute(
                 sa.select(
@@ -104,9 +127,9 @@ class AuthActions:
             )
             user = res.first()
             if user is None:
-                log.error("Ошибка авторизации, пользователь не найден")
+                log.error(f"Ошибка авторизации, пользователь {email} не найден")
                 raise HTTPException(
-                    detail="Ошибка авторизации, пользователь не найден",
+                    detail=f"Ошибка авторизации, пользователь {email} не найден",
                     status_code=http.HTTPStatus.BAD_REQUEST,
                 )
             log.info(f"Авторизован, как {email}")
