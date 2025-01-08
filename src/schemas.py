@@ -71,12 +71,13 @@ class PaymentInfo(Payment):
 
 class FuturePayment(BaseModel):
     id: int | None = None
+    default: int = 0
     amount: int = 0
     interest: int = 0
     redemption: int = 0
     total: int = 0
     remainder: int = 0
-    date: datetime
+    date: str
 
 
 class DebtInfo(Debt):

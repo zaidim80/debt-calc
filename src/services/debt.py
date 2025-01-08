@@ -3,6 +3,7 @@ import sqlalchemy as sa
 from fastapi.security import OAuth2PasswordBearer
 import logging
 from datetime import datetime
+import math
 
 import schemas as s
 import models as m
@@ -13,6 +14,10 @@ log = logging.getLogger()
 
 
 class DebtActions:
+    @staticmethod
+    def calc_payment(rate: float, period: int, debt: float) -> int:
+        return round(debt * (rate + rate / (pow(1 + rate, period) - 1)))
+
     async def get_one(self, dbc: AsyncConnection, user: s.User, item_id: int):
         res = await dbc.execute(
             sa.select(
@@ -62,46 +67,55 @@ class DebtActions:
             pid = f"{item.date.year}-{item.date.month:02d}"
             payments[pid] = item
         mrate = result.rate / 12 / 100
-        result.default_payment = round(result.amount * (mrate + mrate / (pow(1 + mrate, result.period) - 1)))
+        result.default_payment = self.calc_payment(mrate, result.period, result.amount)
         month = result.date.month - 1
         year = result.date.year
-        payed = 0
-        debt = result.amount
+        loan_payed = 0
+        loan_debt = result.amount
         now = datetime.now()
         today = f"{now.year}-{now.month:02d}"
+        month_new_payment = result.default_payment
         schedule = []
         for i in range(1, result.period + 1):
             month += 1
-            cur_month = month % 12
-            cur_year = year + (month // 12)
-            pid = f"{cur_year}-{cur_month:02d}"
-            new_payment = (
-                round(debt * (mrate + mrate / (pow(1 + mrate, result.period - i) - 1))) if result.period - i
-                else debt
-            )
-            if pid in payments:
-                # оплата за данный месяц уже внесена
-                payed += payments[pid].amount
-                amount = payments[pid].amount
-                debt -= amount
-            elif today > pid:
-                # просрочка
-                amount = 0
+            current_month = month % 12 + 1
+            current_year = year + math.floor(month / 12)
+            month_id = f"{current_year:04d}-{current_month:02d}"
+            # month_title = f"{current_month:02d}.{current_year:04d}"
+            # month_title_short = f"{current_month:02d}.{(current_year % 100):02d}"
+            month_payed = month_id in payments
+            loan_debt *= 1 + mrate
+            month_tax = loan_debt * mrate
+
+            if month_payed:
+                month_payment = payments[month_id].amount
+                loan_payed += month_payment
+                loan_debt -= month_payment
+                month_new_payment = self.calc_payment(mrate, result.period - i, loan_debt)
+                rec_payment = result.default_payment
+                payed_summ = month_payment
+            elif today > month_id:
+                month_payment = 0
+                month_new_payment = self.calc_payment(mrate, result.period - i, loan_debt)
+                rec_payment = month_new_payment
+                payed_summ = 0
             else:
-                # будущее
-                pass
-            fp = {
-                "id": i,
-                "amount": new_payment,
-                "interest": 0,
-                "redemption": 0,
-                "total": payed,
-                "remainder": debt,
-                "date": pid,
-            }
+                month_payment = month_new_payment
+                loan_debt -= month_payment
+                rec_payment = month_payment
+                payed_summ = 0
+            fp = s.FuturePayment(
+                id=i,
+                default=rec_payment,
+                amount=payed_summ,
+                interest=round(month_tax),
+                redemption=round(month_payment - month_tax),
+                total=round(loan_payed),
+                remainder=round(loan_debt),
+                date=month_id,
+            )
             schedule.append(fp)
         result.schedule = schedule
-
         return result
 
     @staticmethod
