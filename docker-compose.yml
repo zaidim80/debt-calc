@@ -59,9 +59,12 @@ services:
         ports:
             - "8001:8001"
         command: >
-            /bin/bash -c "npm run dev"
+            /bin/bash -c "
+            npm run dev
+            "
         volumes:
             - ./vue/src/:/app/src
+            - ./vue/dist/:/app/dist
         tty: true
     nginx:
         build: 
