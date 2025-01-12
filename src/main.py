@@ -3,6 +3,7 @@ import logging.config
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from config import cfg
 from logger import LOGGING
@@ -23,6 +24,7 @@ app.include_router(auth.router, tags=["авторизация"])
 app.include_router(debt.router, tags=["займы"])
 app.include_router(payment.router, tags=["платежи"])
 
+app.mount("/", StaticFiles(directory="front", html=True, check_dir=False), name="frontend")
 
 if __name__ == "__main__":
     uvicorn.run(
