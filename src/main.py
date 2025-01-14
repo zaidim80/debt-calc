@@ -24,7 +24,7 @@ app.include_router(auth.router, tags=["авторизация"])
 app.include_router(debt.router, tags=["займы"])
 app.include_router(payment.router, tags=["платежи"])
 
-app.mount("/", StaticFiles(directory="front", html=True, check_dir=False), name="frontend")
+app.mount("/", StaticFiles(directory="vue/dist", html=True, check_dir=False), name="frontend")
 
 if __name__ == "__main__":
     uvicorn.run(
