@@ -61,6 +61,7 @@ services:
         command: >
             /bin/bash -c "
             npm run build
+            && npm run dev
             "
         volumes:
             - ./vue/src/:/app/src
