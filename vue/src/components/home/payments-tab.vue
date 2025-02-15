@@ -1,6 +1,14 @@
 <template>
     <div class="row for-table">
             <div class="col pt-4 pb-4 for-table">
+				<div class="d-flex justify-content-end mb-3">
+					<button 
+						class="btn btn-primary" 
+						@click="showPaymentModal = true"
+					>
+						Добавить платёж
+					</button>
+				</div>
                 <div class="table-responsive table-payments">
                     <div class="vtable">
                         <div class="vthead">
@@ -22,21 +30,37 @@
                     </div>
                 </div>
             </div>
+			<payment-modal 
+				v-model:show="showPaymentModal"
+				:debt-id="details?.id"
+				@payment-added="onPaymentAdded"
+			/>
         </div>
 </template>
 
 <script>
 import PaymentRow from "./payment-row.vue";
+import PaymentModal from "./payment-modal.vue";
 
 export default {
     components: {
         PaymentRow,
+        PaymentModal,
     },
     props: {
         selection: Object,
         details: Object,
     },
+	data() {
+        return {
+            showPaymentModal: false,
+        }
+    },
     methods: {
+		onPaymentAdded(payment) {
+			this.details.payments.push(payment);
+			this.showPaymentModal = false;
+		},
     },
     watch: {
     },
