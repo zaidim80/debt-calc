@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr, field_validator, ValidationInfo, model_validator
-from datetime import datetime
+from pydantic import BaseModel, field_validator, model_validator
+from datetime import datetime, date
+from decimal import Decimal
 
 
 class User(BaseModel):
@@ -83,3 +84,16 @@ class FuturePayment(BaseModel):
 class DebtInfo(Debt):
     payments: list[Payment] | None = None
     schedule: list[FuturePayment] | None = None
+
+
+class PaymentCreate(BaseModel):
+    debt_id: int
+    amount: Decimal
+    payment_date: date
+    description: str | None = None
+
+
+class PaymentUpdate(BaseModel):
+    amount: Decimal | None = None
+    payment_date: date | None = None
+    description: str | None = None

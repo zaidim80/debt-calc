@@ -2,6 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 import sqlalchemy as sa
 import logging
 import pydantic as pd
+import http
+from fastapi import HTTPException
 
 import schemas as s
 import models as m
@@ -65,37 +67,74 @@ class PaymentActions:
         )) for item in items]
 
     @staticmethod
-    async def create(dbc: AsyncConnection, user: s.User, data: s.PaymentData):
+    async def get_debt(dbc: AsyncConnection, user: s.User, debt_id: int):
         res = await dbc.execute(
-            sa.select(
-                m.debt.c.id, m.debt.c.amount, m.debt.c.date, m.debt.c.name, m.debt.c.period, m.debt.c.rate,
-                m.debt.c.author_email, m.user.c.name.label("author_name"),
+            sa.select(m.debt).where(m.debt.c.id == debt_id)
+        )
+        return res.first()
+
+    async def create(self, dbc: AsyncConnection, user: s.User, data: s.PaymentCreate):
+        # Проверка существования и доступа к займу
+        debt = await self.get_debt(dbc, user, data.debt_id)
+        if not debt:
+            raise HTTPException(
+                status_code=http.HTTPStatus.NOT_FOUND,
+                detail="Заём не найден"
             )
-            .select_from(m.debt, m.user)
-            .where(
-                m.debt.c.author_email == m.user.c.email,
-                m.debt.c.id == data.debt_id,
+        
+        res = await dbc.execute(
+            sa.insert(m.payment)
+            .values(
+                debt_id=data.debt_id,
+                amount=data.amount,
+                payment_date=data.payment_date,
+                description=data.description,
+            )
+            .returning(
+                m.payment.c.id,
+                m.payment.c.debt_id,
+                m.payment.c.amount,
+                m.payment.c.payment_date,
+                m.payment.c.description,
             )
         )
-        debt = res.first()
-        if debt is None:
-            raise pd.ValidationError(
-                []
-            )
-        else:
-            res = await dbc.execute(
-                sa.insert(m.payment)
-                .values(date=data.date, amount=data.amount, author_id=user.id, debt_id=data.debt_id, )
-                .returning(m.payment.c.id, m.payment.c.date, m.payment.c.amount, )
-            )
-            item = res.first()
-            result = s.Payment.model_validate(
-                item,
-                from_attributes=True,
-                context={"author": user},
-            )
-            result.debt = s.Debt.model_validate(debt, from_attributes=True)
-            return result
+        return s.Payment.model_validate(res.first(), from_attributes=True)
 
+    async def update(
+        self, 
+        dbc: AsyncConnection, 
+        user: s.User, 
+        payment_id: int, 
+        data: s.PaymentUpdate
+    ):
+        # Проверка существования и доступа к платежу
+        payment = await self.get_one(dbc, user, payment_id)
+        if not payment:
+            raise HTTPException(
+                status_code=http.HTTPStatus.NOT_FOUND,
+                detail="Платёж не найден"
+            )
+        
+        # Формируем словарь с обновляемыми полями
+        update_data = data.model_dump(exclude_unset=True)
+        if not update_data:
+            raise HTTPException(
+                status_code=http.HTTPStatus.BAD_REQUEST,
+                detail="Нет данных для обновления"
+            )
+
+        res = await dbc.execute(
+            sa.update(m.payment)
+            .where(m.payment.c.id == payment_id)
+            .values(**update_data)
+            .returning(
+                m.payment.c.id,
+                m.payment.c.debt_id,
+                m.payment.c.amount,
+                m.payment.c.payment_date,
+                m.payment.c.description,
+            )
+        )
+        return s.Payment.model_validate(res.first(), from_attributes=True)
 
 actions = PaymentActions()

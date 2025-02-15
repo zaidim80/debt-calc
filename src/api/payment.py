@@ -1,5 +1,6 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, Query
+import http
 
 import logging
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -37,3 +38,31 @@ async def get_list(
     debt_id: Annotated[int | None, Query(alias="debt")] = None,
 ):
     return payment.actions.get_list(dbc, user, debt_id)
+
+
+@router.post(
+    "/payment/",
+    summary="Создание платежа",
+    description="Создание нового платежа по займу",
+    status_code=http.HTTPStatus.CREATED,
+)
+async def create(
+    data: schemas.PaymentCreate,
+    user: Annotated[schemas.User, Depends(auth.actions.auth)],
+    dbc: AsyncConnection = Depends(get_connection),
+):
+    return await payment.actions.create(dbc, user, data)
+
+
+@router.patch(
+    "/payment/{payment_id}",
+    summary="Изменение платежа",
+    description="Изменение существующего платежа по его идентификатору",
+)
+async def update(
+    payment_id: int,
+    data: schemas.PaymentUpdate,
+    user: Annotated[schemas.User, Depends(auth.actions.auth)],
+    dbc: AsyncConnection = Depends(get_connection),
+):
+    return await payment.actions.update(dbc, user, payment_id, data)

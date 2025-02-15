@@ -33,7 +33,7 @@ class AuthActions:
         return token
 
     async def register_user(self, dbc: AsyncConnection, data: s.UserReg) -> s.User | None:
-        pass_hash = self.hash_password(data.password.encode())
+        pass_hash = self.hash_password(data.password)
         res = await dbc.execute(
             sa.select(m.user.c.email)
             .select_from(m.user)
@@ -75,16 +75,15 @@ class AuthActions:
         if user is None:
             log.error(f"Пользователь с указанной эл. почтой {data.username} не найден")
             raise HTTPException(
-                detail="Пользователь с указанной эл. почтой не найден",
-                status_code=http.HTTPStatus.BAD_REQUEST,
+                detail="Неверный email или пароль",  # Изменяем сообщение об ошибке для безопасности
+                status_code=http.HTTPStatus.UNAUTHORIZED,  # Меняем код ответа на более подходящий
             )
         if user.password != pass_hash:
             log.error("Неверная эл. почта или пароль")
             raise HTTPException(
-                detail="Неверная эл. почта или пароль",
-                status_code=http.HTTPStatus.BAD_REQUEST,
+                detail="Неверный email или пароль",
+                status_code=http.HTTPStatus.UNAUTHORIZED,
             )
-        # логика формирования токена заведомо небезопасная
         token = s.Token(
             access_token=self.create_token({
                 "email": user.email,
