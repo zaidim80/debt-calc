@@ -24,7 +24,7 @@
                         </div>
                         <div class="vtbody" v-if="details">
                             <div class="wrapper">
-                                <payment-row v-for="row in details.schedule" :id="row.id" :data="row" />
+                                <payment-row v-for="row in details.schedule" :id="row.id" :data="row" @payment="editPayment(row)" />
                             </div>
                         </div>
                     </div>
@@ -33,6 +33,7 @@
 			<payment-modal 
 				v-model:show="showPaymentModal"
 				:debt-id="details?.id"
+				:payment="selectedPayment"
 				@payment-added="onPaymentAdded"
 			/>
         </div>
@@ -54,12 +55,17 @@ export default {
 	data() {
         return {
             showPaymentModal: false,
+            selectedPayment: null,
         }
     },
     methods: {
 		onPaymentAdded(payment) {
 			this.details.payments.push(payment);
 			this.showPaymentModal = false;
+		},
+		editPayment(payment) {
+			this.selectedPayment = payment;
+			this.showPaymentModal = true;
 		},
     },
     watch: {

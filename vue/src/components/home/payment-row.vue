@@ -7,8 +7,8 @@
         <div class="only-full">
             <span class="currency">{{ formatNum(this.data.default) }} ₽</span>
         </div>
-        <div>
-            <span class="currency">{{ formatNum(this.data.amount) }} ₽</span>
+        <div class="active-cell">
+            <span class="currency" @click="editPayment">{{ formatNum(this.data.amount) }} ₽</span>
         </div>
         <div class="only-full">
             <span class="currency">{{ formatNum(this.data.interest) }} ₽</span>
@@ -34,7 +34,10 @@ export default {
     },
     methods: {
 		formatNum(num) {
-			return num.toLocaleString('ru-RU', { minimumFractionDigits: 0 });
+			return num.toLocaleString("ru-RU", { minimumFractionDigits: 0 });
+		},
+		editPayment() {
+			this.$emit("payment", this.data);
 		},
     },
 	computed: {
@@ -92,7 +95,7 @@ export default {
 }
 .vtr.danger {
 	background-color: #ff5d1d05;
-	color: #882700;
+	color: #e24320;
 }
 .vtr:nth-child(odd).danger {
 	background-color: #ff5d1d11;
@@ -112,6 +115,33 @@ export default {
 .vtr > div:nth-child(7) {
 	padding-right: calc(1.5rem - 5px);
 	flex: 1 1 auto;
+}
+.active-cell > span {
+	display: flex;
+	border: 1px solid #00007240;
+	border-radius: 5px;
+	margin: 4px 0;
+	flex: 1 1 auto;
+	height: calc(100% - 8px);
+	cursor: pointer;
+	align-items: center;
+	justify-content: flex-end;
+	padding: 0 8px;
+}
+.active-cell > span:hover {
+		background: #00007240;
+}
+.vtr.success .active-cell > span {
+	border: 1px solid #1b6e0040;
+}
+.vtr.success .active-cell > span:hover {
+	background: #1b6e0040;
+}
+.vtr.danger .active-cell > span {
+	border: 1px solid #e2432040;
+}
+.vtr.danger .active-cell > span:hover {
+	background: #e2432040;
 }
 
 @media (max-width: 1201px) {

@@ -49,13 +49,14 @@ export default {
     props: {
         show: Boolean,
         debtId: Number,
+        payment: Object,
     },
     data() {
         return {
             form: {
                 amount: null,
-                payment_date: new Date().toISOString().split('T')[0],
-                description: '',
+                payment_date: new Date().toISOString().split("T")[0],
+                description: "",
             }
         }
     },
