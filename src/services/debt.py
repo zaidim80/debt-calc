@@ -69,7 +69,7 @@ class DebtActions:
                 from_attributes=True,
                 context={"author": s.UserOut(name=item.author_name, email=item.author_email)},
             ))
-            pid = f"{item.date.year}-{item.date.month:02d}"
+            pid = item.month
             payments[pid] = item
         mrate = result.rate / 12 / 100
         result.default_payment = self.calc_payment(mrate, result.period, result.amount)
