@@ -94,12 +94,15 @@ export default {
                     { ...this.form },
                     { headers: { Authorization: `Bearer ${this.token}` }},
                 );
-                this.close();
                 this.$emit('payment-added');
             } catch (error) {
                 console.error('Ошибка при создании платежа:', error);
-                // Здесь можно добавить обработку ошибок
+                this.$showToast(
+                    'Ошибка при создании платежа: ' + error,
+                    { type: 'error', autohide: true, },
+                );
             }
+            this.close();
         },
         show() {
             this.modal.show();
