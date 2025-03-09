@@ -30,6 +30,7 @@ payment = sa.Table(
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("debt_id", sa.Integer, sa.ForeignKey("debt.id"), nullable=False),
     sa.Column("date", sa.DateTime, nullable=False),
+    sa.Column("month", sa.String(12), nullable=False),
     sa.Column("amount", sa.Integer, nullable=False),
     sa.Column("author_email", sa.String(200), sa.ForeignKey("user.email"), nullable=False),
 )

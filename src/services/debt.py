@@ -17,8 +17,9 @@ class DebtActions:
     @staticmethod
     def calc_payment(rate: float, period: int, debt: float) -> int:
         return round(debt * (rate + rate / (pow(1 + rate, period) - 1)))
-
-    async def get_one(self, dbc: AsyncConnection, user: s.User, item_id: int):
+    
+    @staticmethod
+    async def _fetch_debt(dbc: AsyncConnection, user: s.User, debt_id: int):
         res = await dbc.execute(
             sa.select(
                 m.debt.c.id,
@@ -33,10 +34,13 @@ class DebtActions:
             .select_from(m.debt, m.user)
             .where(
                 m.user.c.email == m.debt.c.author_email,
-                m.debt.c.id == item_id,
+                m.debt.c.id == debt_id,
             )
         )
-        item = res.first()
+        return res.first()
+
+    async def get_one(self, dbc: AsyncConnection, user: s.User, item_id: int):
+        item = await self._fetch_debt(dbc, user, item_id)
         result = s.DebtInfo.model_validate(
             item,
             from_attributes=True,
@@ -47,6 +51,7 @@ class DebtActions:
                 m.payment.c.id,
                 m.payment.c.amount,
                 m.payment.c.date,
+                m.payment.c.month,
                 m.user.c.email.label("author_email"),
                 m.user.c.name.label("author_name"),
             )
@@ -141,6 +146,43 @@ class DebtActions:
             from_attributes=True,
             context={"author": s.UserOut(name=item.author_name, email=item.author_email)},
         ) for item in res.fetchall()]
+
+    async def process_payment(
+        self,
+        dbc: AsyncConnection,
+        user: s.User,
+        debt_id: int,
+        payment: s.PaymentPay,
+    ) -> s.Payment:
+        debt = await self._fetch_debt(dbc, user, debt_id)
+        old_payment = await dbc.execute(
+            sa.select(m.payment)
+            .where(
+                m.payment.c.debt_id == debt.id,
+                m.payment.c.month == payment.month,
+            )
+        ).first()
+        # if old_payment:
+        #     await dbc.execute(
+        #         sa.update(m.payment)
+        #         .where(m.payment.c.id == old_payment.id)
+        #         .values(amount=payment.amount)
+        #     )
+        # else:
+        #     await dbc.execute(
+        #         sa.insert(m.payment)
+        #         .values(
+        #             debt_id=debt.id,
+        #             amount=payment.amount,
+        #             date=payment.payment_date,
+        #         )
+        #     )
+        return s.Payment(
+            id=old_payment.id,
+            amount=payment.amount,
+            date=payment.payment_date,
+            author=s.UserOut(name=user.name, email=user.email),
+        )
 
 
 actions = DebtActions()

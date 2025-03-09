@@ -1,82 +1,109 @@
 <template>
-    <div class="modal-overlay" v-if="show" @click.self="close">
-        <div class="modal-window">
-            <div class="modal-header">
-                <h5>Добавить платёж</h5>
-                <button type="button" class="btn-close" @click="close"></button>
-            </div>
-            <div class="modal-body">
-                <form @submit.prevent="submit">
-                    <div class="mb-3">
-                        <label class="form-label">Сумма платежа</label>
-                        <input 
-                            type="number" 
-                            class="form-control" 
-                            v-model="form.amount"
-                            step="0.01"
-                            required
-                        >
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Дата платежа</label>
-                        <input 
-                            type="date" 
-                            class="form-control" 
-                            v-model="form.payment_date"
-                            required
-                        >
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Комментарий</label>
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            v-model="form.description"
-                        >
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="close">Отмена</button>
-                        <button type="submit" class="btn btn-primary">Сохранить</button>
-                    </div>
-                </form>
+    <div class="modal fade" tabindex="-1" ref="modal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form @submit.prevent="submit">
+                        <div class="row mb-3">
+                            <label class="col-sm-6 col-form-label">Сумма платежа</label>
+                            <div class="col-sm-6">
+                                <input 
+                                    type="text" 
+                                    class="form-control text-end" 
+                                    v-model="form.amount"
+                                    required
+                                >
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-6 col-form-label">Месяц выплаты</label>
+                            <div class="col-sm-6">
+                                <input 
+                                    type="text" 
+                                    class="form-control text-end" 
+                                    v-model="form.month"
+                                    disabled
+                                >
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="close">Отмена</button>
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        @click="submit"
+                        :disabled="!valid"
+                    >Сохранить</button>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+import { Modal } from 'bootstrap';
+import axios from 'axios';
+
 export default {
     props: {
-        show: Boolean,
         debtId: Number,
         payment: Object,
     },
     data() {
         return {
+            token: sessionStorage.getItem("token"),
             form: {
                 amount: null,
                 payment_date: new Date().toISOString().split("T")[0],
                 description: "",
+                month: null,
             }
         }
     },
+    mounted() {
+        this.modal = new Modal(this.$refs.modal);
+        this.$refs.modal.addEventListener('shown.bs.modal', event => {
+            this.form = {
+                amount: this.payment.amount,
+                month: this.payment.date,
+            }
+        });
+    },
+    computed: {
+        valid() {
+            return this.form.amount && this.isInt(this.form.amount) && this.form.amount > 0;
+        }
+    },
     methods: {
+        isInt(value) {
+            return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value));
+        },
         close() {
-            this.$emit('update:show', false);
+            this.modal.hide();
         },
         async submit() {
             try {
-                await this.$axios.post('/payment/', {
-                    debt_id: this.debtId,
-                    ...this.form
-                });
+                await axios.post(
+                    `/api/debt/${this.debtId}/pay`, 
+                    { ...this.form },
+                    { headers: { Authorization: `Bearer ${this.token}` }},
+                );
                 this.close();
                 this.$emit('payment-added');
             } catch (error) {
                 console.error('Ошибка при создании платежа:', error);
                 // Здесь можно добавить обработку ошибок
             }
-        }
+        },
+        show() {
+            this.modal.show();
+        },
     }
 }
 </script>

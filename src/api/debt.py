@@ -38,3 +38,17 @@ async def get_one(
     dbc: AsyncConnection = Depends(get_connection),
 ):
     return await debt.actions.get_one(dbc, user, debt_id)
+
+
+@router.post(
+    "/debt/{debt_id}/pay",
+    status_code=http.HTTPStatus.OK,
+    description="Платеж",
+)
+async def process_payment(
+    debt_id: int,
+    payment: schemas.PaymentUpdate,
+    user: Annotated[schemas.User, Depends(auth.actions.auth)],
+    dbc: AsyncConnection = Depends(get_connection),
+):
+    return await debt.actions.process_payment(dbc, user, debt_id, payment)

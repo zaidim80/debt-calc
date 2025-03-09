@@ -31,10 +31,10 @@
                 </div>
             </div>
 			<payment-modal 
-				v-model:show="showPaymentModal"
 				:debt-id="details?.id"
 				:payment="selectedPayment"
 				@payment-added="onPaymentAdded"
+				ref="paymentModal"
 			/>
         </div>
 </template>
@@ -65,7 +65,7 @@ export default {
 		},
 		editPayment(payment) {
 			this.selectedPayment = payment;
-			this.showPaymentModal = true;
+			this.$refs.paymentModal.show();
 		},
     },
     watch: {
