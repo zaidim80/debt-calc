@@ -47,8 +47,8 @@
 </template>
 
 <script>
-import { Modal } from 'bootstrap';
-import axios from 'axios';
+import { Modal } from "bootstrap";
+import axios from "axios";
 
 export default {
     props: {
@@ -68,7 +68,7 @@ export default {
     },
     mounted() {
         this.modal = new Modal(this.$refs.modal);
-        this.$refs.modal.addEventListener('shown.bs.modal', event => {
+        this.$refs.modal.addEventListener("shown.bs.modal", () => {
             this.form = {
                 amount: this.payment.amount,
                 month: this.payment.date,
@@ -94,12 +94,12 @@ export default {
                     { ...this.form },
                     { headers: { Authorization: `Bearer ${this.token}` }},
                 );
-                this.$emit('payment-added');
+                this.$emit("payment-added");
             } catch (error) {
-                console.error('Ошибка при создании платежа:', error);
+                console.error("Ошибка при создании платежа:", error);
                 this.$showToast(
-                    'Ошибка при создании платежа: ' + error,
-                    { type: 'error', autohide: true, },
+                    "Ошибка при создании платежа: " + error,
+                    { type: "error", autohide: true },
                 );
             }
             this.close();

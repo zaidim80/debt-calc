@@ -3,7 +3,6 @@ import { createWebHistory, createRouter } from "vue-router";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./custom.scss";
-import "bootstrap";
 import { Toast } from "bootstrap";
 
 import App from "./App.vue";
@@ -13,12 +12,12 @@ const app = createApp(App);
 
 app.config.globalProperties.$showToast = function (message, options = {}) {
     // Создаем элемент Toast
-    const toastElement = document.createElement('div');
-    toastElement.classList.add('toast');
-    if (options.type === 'success') {
-        toastElement.classList.add('text-bg-success');
-    } else if (options.type === 'error') {
-        toastElement.classList.add('text-bg-danger');
+    const toastElement = document.createElement("div");
+    toastElement.classList.add("toast");
+    if (options.type === "success") {
+        toastElement.classList.add("text-bg-success");
+    } else if (options.type === "error") {
+        toastElement.classList.add("text-bg-danger");
     }
     // Задаем содержимое Toast
     toastElement.innerHTML = `
@@ -28,7 +27,7 @@ app.config.globalProperties.$showToast = function (message, options = {}) {
         </div>
     `;
     // Добавляем Toast в контейнер
-    const toastContainer = document.getElementById('toast-container');
+    const toastContainer = document.getElementById("toast-container");
     toastContainer.appendChild(toastElement);
     // Инициализируем Toast с помощью Bootstrap
     const toast = new Toast(toastElement, {
@@ -38,7 +37,7 @@ app.config.globalProperties.$showToast = function (message, options = {}) {
     // Показываем Toast
     toast.show();
     // Удаляем Toast после скрытия
-    toastElement.addEventListener('hidden.bs.toast', () => {
+    toastElement.addEventListener("hidden.bs.toast", () => {
         toastElement.remove();
     });
 };
@@ -66,4 +65,4 @@ router.beforeEach((to, from, next) => {
 });
 
 app.use(router);
-app.mount('#app');
+app.mount("#app");

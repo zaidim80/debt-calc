@@ -47,7 +47,7 @@ async def get_one(
 )
 async def process_payment(
     debt_id: int,
-    payment: schemas.PaymentUpdate,
+    payment: schemas.PaymentPay,
     user: Annotated[schemas.User, Depends(auth.actions.auth)],
     dbc: AsyncConnection = Depends(get_connection),
 ):

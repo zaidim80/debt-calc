@@ -155,33 +155,56 @@ class DebtActions:
         payment: s.PaymentPay,
     ) -> s.Payment:
         debt = await self._fetch_debt(dbc, user, debt_id)
-        old_payment = await dbc.execute(
-            sa.select(m.payment)
+        res = await dbc.execute(
+            sa.select(m.payment.c.id)
             .where(
                 m.payment.c.debt_id == debt.id,
                 m.payment.c.month == payment.month,
             )
-        ).first()
-        # if old_payment:
-        #     await dbc.execute(
-        #         sa.update(m.payment)
-        #         .where(m.payment.c.id == old_payment.id)
-        #         .values(amount=payment.amount)
-        #     )
-        # else:
-        #     await dbc.execute(
-        #         sa.insert(m.payment)
-        #         .values(
-        #             debt_id=debt.id,
-        #             amount=payment.amount,
-        #             date=payment.payment_date,
-        #         )
-        #     )
+        )
+        payment_id = res.scalar()
+        if payment_id:
+            await dbc.execute(
+                sa.update(m.payment)
+                .where(m.payment.c.id == payment_id)
+                .values(amount=payment.amount)
+                .returning(m.payment.c.id)
+            )
+        else:
+            res = await dbc.execute(
+                sa.insert(m.payment)
+                .values(
+                    debt_id=debt.id,
+                    amount=payment.amount,
+                    date=datetime.now(),
+                    month=payment.month,
+                    author_email=user.email,
+                )
+                .returning(m.payment.c.id)
+            )
+            payment_id = res.scalar()
+        res = await dbc.execute(
+            sa.select(
+                m.payment.c.id,
+                m.payment.c.amount,
+                m.payment.c.date,
+                m.payment.c.month,
+                m.user.c.email.label("author_email"),
+                m.user.c.name.label("author_name"),
+            )
+            .select_from(m.payment, m.user)
+            .where(
+                m.payment.c.id == payment_id,
+                m.user.c.email == m.payment.c.author_email,
+            )
+        )
+        item = res.first()
         return s.Payment(
-            id=old_payment.id,
-            amount=payment.amount,
-            date=payment.payment_date,
-            author=s.UserOut(name=user.name, email=user.email),
+            id=item.id,
+            amount=item.amount,
+            date=item.date,
+            month=item.month,
+            author=s.UserOut(name=item.author_name, email=item.author_email),
         )
 
 
