@@ -73,7 +73,6 @@ class FuturePayment(BaseModel):
 
 
 class DebtInfo(Debt):
-    payments: list[Payment] | None = None
     schedule: list[FuturePayment] | None = None
 
 

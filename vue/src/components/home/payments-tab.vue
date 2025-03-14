@@ -1,14 +1,6 @@
 <template>
     <div class="row for-table">
             <div class="col pt-4 pb-4 for-table">
-				<div class="d-flex justify-content-end mb-3">
-					<button 
-						class="btn btn-primary" 
-						@click="showPaymentModal = true"
-					>
-						Добавить платёж
-					</button>
-				</div>
                 <div class="table-responsive table-payments">
                     <div class="vtable">
                         <div class="vthead">
@@ -59,9 +51,8 @@ export default {
         }
     },
     methods: {
-		onPaymentAdded(payment) {
-			this.details.payments.push(payment);
-			this.showPaymentModal = false;
+		onPaymentAdded(data) {
+			this.details.schedule = data.schedule;
 		},
 		editPayment(payment) {
 			this.selectedPayment = payment;

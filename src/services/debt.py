@@ -8,7 +8,7 @@ import math
 
 import schemas as s
 import models as m
-
+from errors import AccessDenied, NotFound
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 log = logging.getLogger()
@@ -39,6 +39,8 @@ class DebtActions:
             )
         )
         item = res.first()
+        if not item:
+            raise NotFound("Займ не найден")
         return s.DebtInfo.model_validate(
             item,
             from_attributes=True,
@@ -69,11 +71,28 @@ class DebtActions:
         ) for item in res.fetchall()]
 
     @staticmethod
-    async def _update_or_create_payment(dbc: AsyncConnection, user: s.User, payment: s.PaymentUpdate):
+    async def _create_paylog(dbc: AsyncConnection, user: s.User, payment_id: int, amount: int):
+        await dbc.execute(
+            sa.insert(m.pay_log)
+            .values(
+                payment_id=payment_id,
+                amount=amount,
+                author_email=user.email,
+                date=datetime.now(),
+            )
+        )
+
+    async def _update_or_create_payment(
+        self,
+        dbc: AsyncConnection,
+        user: s.User,
+        debt_id: int,
+        payment: s.PaymentUpdate,
+    ):
         res = await dbc.execute(
             sa.select(m.payment.c.id)
             .where(
-                m.payment.c.debt_id == payment.debt_id,
+                m.payment.c.debt_id == debt_id,
                 m.payment.c.month == payment.month,
             )
         )
@@ -89,7 +108,7 @@ class DebtActions:
             res = await dbc.execute(
                 sa.insert(m.payment)
                 .values(
-                    debt_id=payment.debt_id,
+                    debt_id=debt_id,
                     amount=payment.amount,
                     date=datetime.now(),
                     month=payment.month,
@@ -98,6 +117,7 @@ class DebtActions:
                 .returning(m.payment.c.id)
             )
             payment_id = res.scalar()
+        await self._create_paylog(dbc, user, payment_id, payment.amount)
         return payment_id
 
     @staticmethod
@@ -118,6 +138,8 @@ class DebtActions:
             )
         )
         item = res.first()
+        if not item:
+            raise NotFound("Платеж не найден")
         return s.Payment(
             id=item.id,
             amount=item.amount,
@@ -149,27 +171,20 @@ class DebtActions:
             from_attributes=True,
             context={"author": s.UserOut(name=item.author_name, email=item.author_email)},
         ) for item in res.fetchall()]
-
-    async def get_one(self, dbc: AsyncConnection, user: s.User, item_id: int):
-        result = await self._fetch_debt(dbc, user, item_id)
-        payments_data = await self._fetch_debt_payments(dbc, user, item_id)
-        result.payments = []
-        payments = {}
-        for item in payments_data:
-            result.payments.append(item)
-            pid = item.month
-            payments[pid] = item
-        mrate = result.rate / 12 / 100
-        result.default_payment = self._calc_payment(mrate, result.period, result.amount)
-        month = result.date.month - 1
-        year = result.date.year
+    
+    def _calc_schedule(self, debt: s.Debt, payments: list[s.Payment]):
+        payments = {item.month: item for item in payments}
+        mrate = debt.rate / 12 / 100
+        default_payment = self._calc_payment(mrate, debt.period, debt.amount)
+        month = debt.date.month - 1
+        year = debt.date.year
         loan_payed = 0
-        loan_debt = result.amount
+        loan_debt = debt.amount
         now = datetime.now()
         today = f"{now.year}-{now.month:02d}"
-        month_new_payment = result.default_payment
+        month_new_payment = default_payment
         schedule = []
-        for i in range(1, result.period + 1):
+        for i in range(1, debt.period + 1):
             month += 1
             current_month = month % 12 + 1
             current_year = year + math.floor(month / 12)
@@ -182,12 +197,12 @@ class DebtActions:
                 month_payment = payments[month_id].amount
                 loan_payed += month_payment
                 loan_debt -= month_payment
-                month_new_payment = self._calc_payment(mrate, result.period - i, loan_debt)
-                rec_payment = result.default_payment
+                month_new_payment = self._calc_payment(mrate, debt.period - i, loan_debt)
+                rec_payment = default_payment
                 payed_summ = month_payment
             elif today > month_id:
                 month_payment = 0
-                month_new_payment = self._calc_payment(mrate, result.period - i, loan_debt)
+                month_new_payment = self._calc_payment(mrate, debt.period - i, loan_debt)
                 rec_payment = month_new_payment
                 payed_summ = 0
             else:
@@ -206,10 +221,19 @@ class DebtActions:
                 date=month_id,
             )
             schedule.append(fp)
-        result.schedule = schedule
+        return schedule
+
+    async def get_one(self, dbc: AsyncConnection, user: s.User, item_id: int):
+        # получаем займ
+        result = await self._fetch_debt(dbc, user, item_id)
+        # получаем платежи
+        data = await self._fetch_debt_payments(dbc, user, item_id)
+        # рассчитываем график платежей
+        result.schedule = self._calc_schedule(result, data)
         return result
 
     async def get_list(self, dbc: AsyncConnection, user: s.User):
+
         return await self._fetch_debts(dbc, user)
 
     async def process_payment(
@@ -221,16 +245,15 @@ class DebtActions:
     ) -> s.Payment:
         # проверка прав доступа
         if not user.admin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="У вас нет прав на выполнение этого действия"
-            )
+            raise AccessDenied()
         # проверяем, что займ существует
-        await self._fetch_debt(dbc, user, debt_id)
+        debt = await self._fetch_debt(dbc, user, debt_id)
         # обновляем существующй или создаем новый платеж
-        payment_id = await self._update_or_create_payment(dbc, user, payment)
-        # получаем платеж
-        return await self._fetch_payment(dbc, user, payment_id)
+        await self._update_or_create_payment(dbc, user, debt_id, payment)
+        # обновляем график платежей
+        payments = await self._fetch_debt_payments(dbc, user, debt_id)
+        debt.schedule = self._calc_schedule(debt, payments)
+        return debt
 
 
 actions = DebtActions()

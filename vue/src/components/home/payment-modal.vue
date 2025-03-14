@@ -89,12 +89,12 @@ export default {
         },
         async submit() {
             try {
-                await axios.post(
+                const response = await axios.post(
                     `/api/debt/${this.debtId}/pay`, 
                     { ...this.form },
                     { headers: { Authorization: `Bearer ${this.token}` }},
                 );
-                this.$emit("payment-added");
+                this.$emit("payment-added", response.data);
             } catch (error) {
                 console.error("Ошибка при создании платежа:", error);
                 this.$showToast(

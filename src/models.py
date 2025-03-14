@@ -28,9 +28,19 @@ payment = sa.Table(
     "payment",
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
-    sa.Column("debt_id", sa.Integer, sa.ForeignKey("debt.id"), nullable=False),
+    sa.Column("debt_id", sa.Integer, sa.ForeignKey("debt.id", ondelete="CASCADE"), nullable=False),
     sa.Column("date", sa.DateTime, nullable=False),
     sa.Column("month", sa.String(12), nullable=False),
+    sa.Column("amount", sa.Integer, nullable=False),
+    sa.Column("author_email", sa.String(200), sa.ForeignKey("user.email"), nullable=False),
+)
+
+pay_log = sa.Table(
+    "pay_log",
+    metadata,
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("payment_id", sa.Integer, sa.ForeignKey("payment.id", ondelete="CASCADE"), nullable=False),
+    sa.Column("date", sa.DateTime, nullable=False),
     sa.Column("amount", sa.Integer, nullable=False),
     sa.Column("author_email", sa.String(200), sa.ForeignKey("user.email"), nullable=False),
 )

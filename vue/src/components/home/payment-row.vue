@@ -8,7 +8,10 @@
             <span class="currency">{{ formatNum(this.data.default) }} ₽</span>
         </div>
         <div class="active-cell">
-            <span class="currency" @click="editPayment">{{ formatNum(this.data.amount) }} ₽</span>
+            <span class="currency" @click="editPayment">
+				<i class="bi bi-coin" ref="payment" title="..."></i>
+				{{ formatNum(this.data.amount) }} ₽
+			</span>
         </div>
         <div class="only-full">
             <span class="currency">{{ formatNum(this.data.interest) }} ₽</span>
@@ -27,10 +30,22 @@
 
 <script>
 import { format } from "date-fns";
+import { Tooltip } from "bootstrap";
 
 export default {
     props: {
         data: Object,
+    },
+	data() {
+		return {
+			tooltip: null,
+		}
+	},
+    mounted() {
+        this.tooltip = new Tooltip(this.$refs.payment);
+        this.$refs.payment.addEventListener("show.bs.tooltip", () => {
+            console.log("show");
+        });
     },
     methods: {
 		formatNum(num) {
@@ -127,9 +142,22 @@ export default {
 	align-items: center;
 	justify-content: flex-end;
 	padding: 0 8px;
+	position: relative;
 }
 .active-cell > span:hover {
-		background: #00007240;
+	background: #00007240;
+}
+.active-cell > span > i {
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+	position: absolute;
+	top: 4px;
+	left: 8px;
+}
+.active-cell > span:hover > i {
+	opacity: 1;
+	visibility: visible;
 }
 .vtr.success .active-cell > span {
 	border: 1px solid #1b6e0040;
