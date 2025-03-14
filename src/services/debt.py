@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncConnection
 import sqlalchemy as sa
 from fastapi.security import OAuth2PasswordBearer
+from fastapi import HTTPException, status
 import logging
 from datetime import datetime
 import math
@@ -218,6 +219,12 @@ class DebtActions:
         debt_id: int,
         payment: s.PaymentPay,
     ) -> s.Payment:
+        # проверка прав доступа
+        if not user.admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="У вас нет прав на выполнение этого действия"
+            )
         # проверяем, что займ существует
         await self._fetch_debt(dbc, user, debt_id)
         # обновляем существующй или создаем новый платеж
