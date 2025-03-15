@@ -16,6 +16,7 @@
                                     class="form-control text-end" 
                                     v-model="form.amount"
                                     required
+                                    ref="amountInput"
                                 >
                             </div>
                         </div>
@@ -60,8 +61,6 @@ export default {
             token: sessionStorage.getItem("token"),
             form: {
                 amount: null,
-                payment_date: new Date().toISOString().split("T")[0],
-                description: "",
                 month: null,
             }
         }
@@ -73,6 +72,7 @@ export default {
                 amount: this.payment.amount,
                 month: this.payment.date,
             }
+            this.$refs.amountInput.focus();
         });
     },
     computed: {

@@ -219,6 +219,7 @@ class DebtActions:
                 total=round(loan_payed),
                 remainder=round(loan_debt),
                 date=month_id,
+                payment_id=payments[month_id].id if month_payed else None,
             )
             schedule.append(fp)
         return schedule
