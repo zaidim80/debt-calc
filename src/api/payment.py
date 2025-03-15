@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from db import get_connection
 import schemas
-from services import payment, auth
+from services import auth
+from services.payment import payment_service
 
 
 router = APIRouter()
@@ -24,5 +25,5 @@ async def get_history(
     user: Annotated[schemas.User, Depends(auth.actions.auth)],
     dbc: AsyncConnection = Depends(get_connection),
 ):
-    return await payment.actions.get_history(dbc, user, payment_id)
+    return await payment_service.get_history(dbc, user, payment_id)
 

@@ -9,7 +9,7 @@
         </div>
         <div class="active-cell">
             <span class="currency" @click="editPayment">
-                <i class="bi bi-coin" ref="payment" title="<i class='bi bi-arrow-repeat'></i>"></i>
+                <i class="bi bi-receipt" ref="payment" title="<i class='bi bi-arrow-repeat'></i>"></i>
                 {{ formatNum(this.data.amount) }} ₽
             </span>
         </div>

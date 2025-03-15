@@ -24,12 +24,6 @@
                         <a
                             href="#"
                             class="btn"
-                        >
-                            Пользователи
-                        </a>
-                        <a
-                            href="#"
-                            class="btn"
                             @click.prevent="() => { hideMenu(); $emit('exit'); }"
                         >
                             Выход

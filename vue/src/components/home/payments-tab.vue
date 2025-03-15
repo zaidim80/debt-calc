@@ -16,7 +16,13 @@
                         </div>
                         <div class="vtbody" v-if="details">
                             <div class="wrapper">
-                                <payment-row v-for="row in details.schedule" :id="row.id" :data="row" @payment="editPayment(row)" />
+                                <payment-row
+									v-for="row in details.schedule"
+									:id="row.id"
+									:data="row"
+									@payment="editPayment(row)"
+									@delete="deletePayment(row)"
+								/>
                             </div>
                         </div>
                     </div>
@@ -58,8 +64,20 @@ export default {
 			this.selectedPayment = payment;
 			this.$refs.paymentModal.show();
 		},
+        scrollToCurrent() {
+            const currentRow = document.querySelector('.vtbody .vtr.current');
+            if (currentRow) {
+                currentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    },
+    mounted() {
+        this.$nextTick(() => this.scrollToCurrent());
     },
     watch: {
+		'details.schedule'() {
+            this.$nextTick(() => this.scrollToCurrent());
+        }
     },
 };
 </script>
