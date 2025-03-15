@@ -15,20 +15,42 @@ FastAPI + Vue.js
 ```mermaid
 erDiagram
     Debt ||--|{ Payment : debt_id
+    Payment ||--|{ PayLog : payment_id
     Payment }|--|| User : author_email
+    PayLog }|--|| User : author_email
+    Debt }|--|| User : author_email
+
     Debt {
+        int id PK
         string name
-        int size
-        date start
-        float percent
-    }
-    User {
-        string email
-        string name
-        bool admin
-    }
-    Payment {
         date date
         int amount
+        int period
+        float rate
+        string author_email FK
+    }
+
+    User {
+        string email PK
+        string name
+        string password
+        bool admin
+    }
+
+    Payment {
+        int id PK
+        int debt_id FK
+        datetime date
+        string month
+        int amount
+        string author_email FK
+    }
+
+    PayLog {
+        int id PK
+        int payment_id FK
+        datetime date
+        int amount
+        string author_email FK
     }
 ```
