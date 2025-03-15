@@ -12,3 +12,4 @@ data
 .vscode
 /vue/calc-front/.vscode/
 *.php
+node_modules/
