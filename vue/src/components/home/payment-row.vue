@@ -9,7 +9,7 @@
         </div>
         <div class="active-cell">
             <span class="currency" @click="editPayment">
-                <i class="bi bi-receipt" ref="payment" title="<i class='bi bi-arrow-repeat'></i>"></i>
+                <payment-icon :payment-id="data.payment_id" />
                 {{ formatNum(this.data.amount) }} ₽
             </span>
         </div>
@@ -30,67 +30,24 @@
 
 <script>
 import { format } from "date-fns";
-import { Tooltip } from "bootstrap";
-import axios from "axios";
+import PaymentIcon from './payment-log.vue'
 
 export default {
+    components: {
+        PaymentIcon,
+    },
     props: {
-        data: Object,
-    },
-    data() {
-        return {
-            token: sessionStorage.getItem("token"),
-            tooltip: null,
-            calledHistory: false,
+        data: {
+            type: Object,
+            required: true
         }
-    },
-    async mounted() {
-        this.tooltip = new Tooltip(this.$refs.payment, { html: true });
-        this.$refs.payment.addEventListener("shown.bs.tooltip", async () => {
-            if (!this.calledHistory) {
-                this.calledHistory = true;
-                setTimeout(() => {this.calledHistory = false}, 5000);
-                if (this.data.payment_id) {
-                    this.tooltip.setContent({ '.tooltip-inner': '<i class="bi bi-arrow-repeat"></i>' });
-                    try {
-                        const response = await axios.get(
-                            `/api/payment/${this.data.payment_id}/history`, 
-                            { headers: { Authorization: `Bearer ${this.token}` }},
-                        );
-                        if (response.data.length > 0) {
-                            this.tooltip.setContent({ '.tooltip-inner': this.formatHitory(response.data) });
-                        } else {
-                            this.tooltip.setContent({ '.tooltip-inner': 'нет истории платежей' });
-                        }
-                    } catch (error) {
-                        this.tooltip.setContent({ '.tooltip-inner': String(error) });
-                    }
-                } else {
-                    this.tooltip.setContent({ '.tooltip-inner': 'нет платежей' });
-                }
-            }
-        });
     },
     methods: {
         formatNum(num) {
             return num.toLocaleString("ru-RU", { minimumFractionDigits: 0 });
         },
-        formatDate(date) {
-            return format(new Date(date), "dd.MM.yyyy");
-        },
         editPayment() {
             this.$emit("payment", this.data);
-        },
-        formatHitory(history) {
-            return history.map(
-                item => (
-                    `<div class="history-item">` +
-                        `<span class="history-date">${this.formatDate(item.date)}</span>` +
-                        `<span class="history-amount">${this.formatNum(item.amount)} ₽</span>` +
-                        `<span class="history-author">${item.author.name}</span>` +
-                    `</div>`
-                )
-            ).join("\n");
         },
     },
     computed: {
@@ -117,43 +74,6 @@ export default {
 };
 </script>
 
-<style>
-.tooltip-inner {
-    min-width: 100px;
-    max-width: 300px;
-    overflow: hidden;
-}
-.tooltip-inner i.bi.bi-arrow-repeat:before {
-    animation: spin-icon 1s linear infinite;
-}
-.tooltip-inner .history-item {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    flex-wrap: nowrap;
-    white-space: nowrap;
-    overflow: hidden;
-    min-width: 300px;
-}
-.tooltip-inner .history-date {
-    flex: 0 0 80px;
-    text-align: left;
-}
-.tooltip-inner .history-amount {
-    flex: 0 0 80px;
-    text-align: right;
-}
-.tooltip-inner .history-author {
-    flex: 0 0 140px;
-    text-align: left;
-    padding-left: 8px;
-}
-
-@keyframes spin-icon {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-</style>
 <style scoped>
 .only-mobile {
     display: none !important;
@@ -222,7 +142,7 @@ export default {
 .active-cell > span:hover {
     background: #00007240;
 }
-.active-cell > span > i {
+.active-cell > span >>> i {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
@@ -230,7 +150,7 @@ export default {
     top: 4px;
     left: 8px;
 }
-.active-cell > span:hover > i {
+.active-cell > span:hover >>> i {
     opacity: 1;
     visibility: visible;
 }
