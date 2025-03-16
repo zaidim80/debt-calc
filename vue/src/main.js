@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import { createWebHistory, createRouter } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -52,7 +52,7 @@ const routes = [
 ];
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory(),
     routes,
 });
 

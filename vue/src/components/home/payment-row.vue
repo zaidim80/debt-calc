@@ -146,7 +146,7 @@ export default {
 .active-cell > span:hover {
     background: #00007240;
 }
-.active-cell > span >>> i {
+.active-cell > span :deep(i) {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
@@ -154,7 +154,7 @@ export default {
     top: 4px;
     left: 8px;
 }
-.active-cell > span:hover >>> i {
+.active-cell > span:hover :deep(i) {
     opacity: 1;
     visibility: visible;
 }
@@ -187,7 +187,9 @@ export default {
     .vtr > div:nth-child(1) {
         flex: 0 0 80px;
     }
-
+    .active-cell > span:hover :deep(i) {
+        display: none;
+    }
 }
 
 @media (max-width: 769px) {
