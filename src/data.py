@@ -23,7 +23,7 @@ async def run(dbe: AsyncEngine):
         debts = res.fetchall()
         for debt in debts:
             try:
-                with open(f"data/payments-{debt.id}.json", mode="r") as f:
+                with open(f"data/{debt.id}.json", mode="r") as f:
                     await dbc.execute(m.payment.delete().where(m.payment.c.debt_id == debt.id))
                     payments = json.loads(f.read())
                     for payment in payments:
