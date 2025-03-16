@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     )
     host: str = Field("localhost")
     port: int = Field(8000)
-    dsn: str = Field("postgresql+asyncpg://postgres:postgres@db:5432/postgres", alias="DB_CONNECTION_STRING")
+    dsn: str = Field("postgresql+asyncpg://postgres:postgres@db:5432/postgres", alias="DSN")
     redis: str = Field("localhost")
 
     auth_secret: str = Field("mega-secret")
