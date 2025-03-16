@@ -21,7 +21,7 @@
 									:id="row.id"
 									:data="row"
 									@payment="editPayment(row)"
-									@delete="deletePayment(row)"
+									:can-pay="details.can_pay"
 								/>
                             </div>
                         </div>
@@ -61,8 +61,10 @@ export default {
 			this.details.schedule = data.schedule;
 		},
 		editPayment(payment) {
-			this.selectedPayment = payment;
-			this.$refs.paymentModal.show();
+			if (this.details.can_pay) {
+				this.selectedPayment = payment;
+				this.$refs.paymentModal.show();
+			}
 		},
         scrollToCurrent() {
             const currentRow = document.querySelector('.vtbody .vtr.current');

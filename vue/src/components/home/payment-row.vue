@@ -40,6 +40,10 @@ export default {
         data: {
             type: Object,
             required: true
+        },
+        canPay: {
+            type: Boolean,
+            required: true
         }
     },
     methods: {
