@@ -18,6 +18,8 @@ class DebtService:
         """Получение информации о займе с графиком платежей"""
         # получаем займ
         result = await debt_repository.get_by_id(dbc, item_id)
+        # рекомендуемый платеж
+        result.default_payment = calculator.get_default_payment(result)
         # получаем платежи
         payments = await payment_service.fetch_payments(dbc, item_id)
         # рассчитываем график платежей

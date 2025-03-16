@@ -5,7 +5,7 @@ import schemas as s
 
 class PaymentScheduleCalculator:
     @staticmethod
-    def calc_default_payment(rate: float, period: int, debt: float) -> int:
+    def _calc_default_payment(rate: float, period: int, debt: float) -> int:
         """Расчет ежемесячного платежа"""
         return round(debt * (rate + rate / (pow(1 + rate, period) - 1))) if debt > 0 else 0
 
@@ -13,7 +13,7 @@ class PaymentScheduleCalculator:
         """Расчет графика платежей"""
         payments_dict = {item.month: item for item in payments}
         monthly_rate = debt.rate / 12 / 100
-        default_payment = self.calc_default_payment(monthly_rate, debt.period, debt.amount)
+        default_payment = self._calc_default_payment(monthly_rate, debt.period, debt.amount)
         
         month = debt.date.month - 1
         year = debt.date.year
@@ -38,7 +38,7 @@ class PaymentScheduleCalculator:
             
             loan_paid = schedule_item.total
             loan_debt = schedule_item.remainder
-            month_new_payment = self.calc_default_payment(monthly_rate, debt.period - i, loan_debt)
+            month_new_payment = self._calc_default_payment(monthly_rate, debt.period - i, loan_debt)
             
             schedule.append(schedule_item)
         
@@ -93,6 +93,10 @@ class PaymentScheduleCalculator:
             date=month_id,
             payment_id=payment_id
         )
+    
+    def get_default_payment(self, debt: s.Debt) -> int:
+        """Расчет рекомендуемого платежа"""
+        return self._calc_default_payment(debt.rate / 12 / 100, debt.period, debt.amount)
 
 
 calculator = PaymentScheduleCalculator()
