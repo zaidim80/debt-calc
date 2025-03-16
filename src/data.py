@@ -35,6 +35,7 @@ async def run(dbe: AsyncEngine):
                                 debt_id=debt.id,
                                 date=dt,
                                 amount=int(money),
+                                month=dt_str,
                                 author_email=debt.author_email,
                             )
                         )
