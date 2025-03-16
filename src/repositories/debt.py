@@ -28,7 +28,7 @@ class DebtRepository(BaseRepository[s.DebtInfo]):
             .join(m.user, m.user.c.email == m.debt.c.author_email)
         )
 
-    async def get_by_id(self, dbc: AsyncConnection, debt_id: int) -> s.DebtInfo:
+    async def get_by_id(self, dbc: AsyncConnection, user: s.User, debt_id: int) -> s.DebtInfo:
         """Получение займа по ID"""
         query = self._build_base_query().where(m.debt.c.id == debt_id)
         result = await self._execute_query(dbc, query)
@@ -38,10 +38,16 @@ class DebtRepository(BaseRepository[s.DebtInfo]):
         return s.DebtInfo.model_validate(
             item,
             from_attributes=True,
-            context={"author": s.UserOut(name=item.author_name, email=item.author_email)},
+            context={
+                "author": s.UserOut(
+                    name=item.author_name,
+                    email=item.author_email,
+                ),
+                "user": user,
+            },
         )
 
-    async def get_all(self, dbc: AsyncConnection) -> list[s.Debt]:
+    async def get_all(self, dbc: AsyncConnection, user: s.User) -> list[s.Debt]:
         """Получение списка всех займов"""
         query = self._build_base_query().order_by(m.debt.c.date)
         result = await self._execute_query(dbc, query)
@@ -49,7 +55,12 @@ class DebtRepository(BaseRepository[s.DebtInfo]):
             s.Debt.model_validate(
                 item,
                 from_attributes=True,
-                context={"author": s.UserOut(name=item.author_name, email=item.author_email)},
+                context={
+                    "author": s.UserOut(
+                        name=item.author_name,
+                        email=item.author_email,
+                    ),
+                },
             )
             for item in result.fetchall()
         ]

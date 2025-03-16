@@ -32,34 +32,6 @@ class AuthActions:
         token = jwt.encode(to_encode, cfg.auth_secret, algorithm="HS256")
         return token
 
-    async def register_user(self, dbc: AsyncConnection, data: s.UserReg) -> s.User | None:
-        pass_hash = self.hash_password(data.password)
-        res = await dbc.execute(
-            sa.select(m.user.c.email)
-            .select_from(m.user)
-            .where(m.user.c.email == data.email)
-        )
-        existing_user = res.first()
-        if existing_user:
-            log.error(f"Пользователь с эл. почтой {data.email} уже зарегистрирован")
-            raise HTTPException(
-                detail="Пользователь с указанной эл. почтой уже зарегистрирован",
-                status_code=http.HTTPStatus.BAD_REQUEST,
-            )
-        res = await dbc.execute(
-            sa.insert(m.user)
-            .values(
-                **data.model_dump(exclude={"password"}),
-                password=pass_hash,
-            )
-            .returning(
-                m.user.c.email,
-                m.user.c.name,
-                m.user.c.admin,
-            )
-        )
-        return s.User.model_validate(res.first(), from_attributes=True)
-
     async def get_token(self, dbc: AsyncConnection, data: OAuth2PasswordRequestForm) -> s.Token:
         pass_hash = self.hash_password(data.password)
         res = await dbc.execute(

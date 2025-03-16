@@ -30,12 +30,12 @@ class Authored(BaseModel):
     @model_validator(mode="after")
     @classmethod
     def check_author(cls, v, info):
-        v.author = info.context["author"] if info.context and "author" in info.context else None
+        if v.author is None:
+            v.author = (
+                info.context["author"] if info.context and "author" in info.context
+                else None
+            )
         return v
-
-
-class UserReg(User):
-    password: str
 
 
 class Token(BaseModel):
@@ -74,6 +74,16 @@ class FuturePayment(BaseModel):
 
 class DebtInfo(Debt):
     schedule: list[FuturePayment] | None = None
+    can_edit: bool = False
+    can_pay: bool = False
+
+    @model_validator(mode="after")
+    @classmethod
+    def check_rights(cls, v, info):
+        if info.context and "user" in info.context:
+            v.can_edit = info.context["user"].admin
+            v.can_pay = info.context["user"].admin
+        return v
 
 
 class PaymentCreate(BaseModel):

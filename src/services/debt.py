@@ -17,7 +17,7 @@ class DebtService:
     async def get_one(self, dbc: AsyncConnection, user: s.User, item_id: int) -> s.DebtInfo:
         """Получение информации о займе с графиком платежей"""
         # получаем займ
-        result = await debt_repository.get_by_id(dbc, item_id)
+        result = await debt_repository.get_by_id(dbc, user, item_id)
         # рекомендуемый платеж
         result.default_payment = calculator.get_default_payment(result)
         # получаем платежи
@@ -28,7 +28,7 @@ class DebtService:
 
     async def get_list(self, dbc: AsyncConnection, user: s.User) -> list[s.Debt]:
         """Получение списка всех займов"""
-        return await debt_repository.get_all(dbc)
+        return await debt_repository.get_all(dbc, user)
 
     async def process_payment(
         self,
