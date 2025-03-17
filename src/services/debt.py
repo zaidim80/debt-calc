@@ -43,7 +43,7 @@ class DebtService:
             raise AccessDenied()
             
         # проверяем, что займ существует
-        debt = await debt_repository.get_by_id(dbc, debt_id)
+        debt = await debt_repository.get_by_id(dbc, user, debt_id)
         
         # ищем существующий платеж за этот месяц
         existing_payment = await payment_repository.get_by_debt_and_month(dbc, debt_id, payment.month)

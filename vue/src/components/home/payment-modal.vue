@@ -3,7 +3,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Modal title</h5>
+                    <h5 class="modal-title">Платеж</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -17,6 +17,7 @@
                                     v-model="form.amount"
                                     required
                                     ref="amountInput"
+                                    @keyup.enter="() => {if (valid) submit();}"
                                 >
                             </div>
                         </div>
@@ -37,7 +38,7 @@
                     <button type="button" class="btn btn-secondary" @click="close">Отмена</button>
                     <button
                         type="submit"
-                        class="btn btn-primary"
+                        class="btn btn-success"
                         @click="submit"
                         :disabled="!valid"
                     >Сохранить</button>
@@ -73,6 +74,7 @@ export default {
                 month: this.payment.date,
             }
             this.$refs.amountInput.focus();
+            this.$refs.amountInput.select();
         });
     },
     computed: {
@@ -95,6 +97,10 @@ export default {
                     { headers: { Authorization: `Bearer ${this.token}` }},
                 );
                 this.$emit("payment-added", response.data);
+                this.$showToast(
+                    "Информация о платеже успешно записана",
+                    { type: "success", autohide: true },
+                );
             } catch (error) {
                 console.error("Ошибка при создании платежа:", error);
                 this.$showToast(
@@ -151,5 +157,22 @@ export default {
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
+}
+.modal-footer button.btn-success {
+    background-color: #57c134;
+    border-color: #57c134;
+}
+.modal-footer button.btn-success:hover {
+    background-color: #47a12a;
+    border-color: #47a12a;
+}
+.modal-footer button.btn-secondary {
+    background-color: #dae1f2;
+    border-color: #dae1f2;
+    color: #000072;
+}
+.modal-footer button.btn-secondary:hover {
+    background-color: #c2d5e9;
+    border-color: #c2d5e9;
 }
 </style> 

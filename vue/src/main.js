@@ -14,17 +14,21 @@ const app = createApp(App);
 app.config.globalProperties.$showToast = function (message, options = {}) {
     // Создаем элемент Toast
     const toastElement = document.createElement("div");
+    let icon = "bi-info-circle";
     toastElement.classList.add("toast");
     if (options.type === "success") {
         toastElement.classList.add("text-bg-success");
+        icon = "bi-check-circle";
     } else if (options.type === "error") {
         toastElement.classList.add("text-bg-danger");
+        icon = "bi-exclamation-octagon";
     }
     // Задаем содержимое Toast
     toastElement.innerHTML = `
-        <div class="d-flex">
+        <div class="d-flex align-items-center ps-3">
+            <i class="fs-3 bi ${icon}"></i>
             <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto"></button>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     `;
     // Добавляем Toast в контейнер
