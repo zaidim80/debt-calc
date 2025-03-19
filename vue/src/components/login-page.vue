@@ -13,10 +13,17 @@
             <div class="form-floating">
                 <input
                     v-model="password"
-                    type="password"
+                    :type="showPassword ? 'text' : 'password'"
                     class="form-control"
                 >
                 <label for="floatingPassword">Пароль</label>
+                <button 
+                    type="button" 
+                    class="btn btn-link position-absolute end-0 top-50 translate-middle-y pe-3"
+                    @click="showPassword = !showPassword"
+                >
+                    <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
             </div>
             <button
                 @click.prevent="login"
@@ -24,6 +31,9 @@
             >
                 Войти
             </button>
+            <div v-if="error" class="alert alert-danger mt-3">
+                {{ error }}
+            </div>
         </form>
     </main>
 </template>
@@ -36,6 +46,8 @@ export default {
         return {
             username: "",
             password: "",
+            error: null,
+            showPassword: false,
         };
     },
     methods: {
@@ -48,9 +60,11 @@ export default {
                 if (res.status == 200 && res.data.access_token) {
                     sessionStorage.setItem("token", res.data.access_token);
                     this.$router.push("/");
+                } else {
+                    this.error = res?.data?.detail || "Неизвестная ошибка";
                 }
             } catch (error) {
-                console.error('Error registering user:', error);
+                this.error = error?.response?.data?.detail || "Неизвестная ошибка";
             }
         },
     },
@@ -85,5 +99,14 @@ export default {
     margin-bottom: 10px;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
+}
+.form-floating .btn-link {
+    color: #6c757d;
+    text-decoration: none;
+    padding: 0;
+    z-index: 3;
+}
+.form-floating .btn-link:hover {
+    color: #0d6efd;
 }
 </style>
