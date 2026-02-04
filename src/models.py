@@ -21,6 +21,7 @@ debt = sa.Table(
     sa.Column("amount", sa.Integer, nullable=False),
     sa.Column("period", sa.Integer, nullable=False),
     sa.Column("rate", sa.Float, nullable=False, server_default="0"),
+    sa.Column("is_active", sa.Boolean, nullable=False, server_default=sa.true()),
     sa.Column("author_email", sa.String(200), sa.ForeignKey("user.email"), nullable=False),
 )
 

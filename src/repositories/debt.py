@@ -21,11 +21,13 @@ class DebtRepository(BaseRepository[s.DebtInfo]):
                 m.debt.c.amount,
                 m.debt.c.period,
                 m.debt.c.rate,
+                m.debt.c.is_active,
                 m.user.c.email.label("author_email"),
                 m.user.c.name.label("author_name"),
             )
             .select_from(m.debt)
             .join(m.user, m.user.c.email == m.debt.c.author_email)
+            .where(m.debt.c.is_active == True)
         )
 
     async def get_by_id(self, dbc: AsyncConnection, user: s.User, debt_id: int) -> s.DebtInfo:

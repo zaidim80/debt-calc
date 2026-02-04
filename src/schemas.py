@@ -50,6 +50,7 @@ class Debt(Authored):
     name: str
     period: int
     rate: float
+    is_active: bool = True
     default_payment: int = 0
 
 
